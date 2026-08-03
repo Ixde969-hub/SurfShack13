@@ -110,6 +110,30 @@ Use these statuses consistently:
 - Keep unrelated user changes out of feature branches.
 - Update GitHub documentation whenever implementation status changes.
 
+## Pull request body requirements
+
+Whenever a pull request is opened or the user is given a manual upstream PR link, also generate a completed pull request body using the target repository's template. Do not leave placeholder comments or unused changelog prefixes in the finished body.
+
+Use this structure:
+
+```markdown
+## About The Pull Request
+
+Describe every gameplay, code, asset, map, configuration, or administrator-facing change included in the pull request. Include the historical source for restorations and ports, intentional SurfShack13 differences, and any known limitations.
+
+## Why It's Good For The Game
+
+Explain the player-facing or administrator-facing benefit and why the change improves SurfShack13. Address balance or compatibility concerns when relevant.
+
+## Changelog
+
+:cl:
+<only the applicable changelog entries>
+/:cl:
+```
+
+Choose only applicable changelog prefixes from `add`, `del`, `qol`, `balance`, `fix`, `sound`, `image`, `map`, `spellcheck`, `code`, `refactor`, `config`, `admin`, or `server`. Changelog wording should describe observable player or administrator impact rather than merely restating implementation details.
+
 ## Command shorthand
 
 Requests may use concise instructions such as:
