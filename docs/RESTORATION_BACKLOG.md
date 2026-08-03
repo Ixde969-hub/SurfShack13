@@ -54,6 +54,7 @@ For each approved item:
 | Original rank | Upstream PR | Change | Status | SurfShack13 work | Notes |
 |---:|---|---|---|---|---|
 | 2 | [tgstation/tgstation#48668](https://github.com/tgstation/tgstation/pull/48668) | Completely removes cloning | `in-progress` | [SurfShack13#6](https://github.com/Ixde969-hub/SurfShack13/pull/6) | Functional modern cloning port; full CI reported passing on commit `8f594d04db6b22f631f55c9740ce6f0253ca49e8`. |
+| 21 | [tgstation/tgstation#55663](https://github.com/tgstation/tgstation/pull/55663) | Makes shotguns specialist weapons and removes common ammo access | `in-progress` | Draft [SurfShack13#8](https://github.com/Ixde969-hub/SurfShack13/pull/8), branch `agent/restore-cheap-shotgun-ammo` | Restores slug and buckshot printing in all supported lathes at the historical equivalent of two iron sheets per shell. Seven-shell slug and buckshot boxes cost fourteen sheets. Existing 50-damage slugs, buckshot-loaded combat shotguns, and the faster riot-shotgun delay are preserved. Source and compatibility inspection completed; DreamMaker compile and gameplay validation remain pending. |
 
 ## Merged upstream candidates from the original top 50
 
@@ -69,7 +70,6 @@ These entries are ordered by their position in the original all-PR thumbs-down r
 | 15 | [#73492](https://github.com/tgstation/tgstation/pull/73492) | Restricts stunbaton stun mode to red alert | Balance reversal | `candidate` |
 | 16 | [#94182](https://github.com/tgstation/tgstation/pull/94182) | Removes printable defibrillators and makes compact defib CMO-exclusive | Availability reversal | `candidate` |
 | 20 | [#75785](https://github.com/tgstation/tgstation/pull/75785) | Crate resprite | Visual reversal | `candidate` |
-| 21 | [#55663](https://github.com/tgstation/tgstation/pull/55663) | Makes shotguns specialist weapons and removes common ammo access | Balance/content reversal | `candidate` |
 | 23 | [#65795](https://github.com/tgstation/tgstation/pull/65795) | Arconomy price, paycheck, gas-export, and lathe-tax overhaul | System redesign review | `candidate` |
 | 24 | [#80703](https://github.com/tgstation/tgstation/pull/80703) | Replaces natural beheading with cranial fissures | Mechanic reversal | `candidate` |
 | 25 | [#41108](https://github.com/tgstation/tgstation/pull/41108) | Removes integrated circuits | Feature restoration | `candidate` |
