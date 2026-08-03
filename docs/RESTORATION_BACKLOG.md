@@ -6,6 +6,13 @@ Chat discussions, temporary notes, and reaction rankings are informational only.
 
 Last reviewed: 2026-08-03
 
+## Relationship to other backlogs
+
+- Features imported from Hippiecode or another codebase belong in [`FEATURE_PORT_BACKLOG.md`](FEATURE_PORT_BACKLOG.md).
+- Original SurfShack13 designs belong in [`CUSTOM_FEATURE_BACKLOG.md`](CUSTOM_FEATURE_BACKLOG.md).
+- The feature-work entry point is [`FEATURE_INDEX.md`](FEATURE_INDEX.md).
+- Shared development rules are recorded in [`PROJECT_INSTRUCTIONS.md`](PROJECT_INSTRUCTIONS.md).
+
 ## Eligibility rules
 
 An upstream change may enter this backlog only when all of the following are true:
@@ -22,11 +29,13 @@ Closed-unmerged, rejected, abandoned, draft-only, and joke proposals are exclude
 | Status | Meaning |
 |---|---|
 | `candidate` | Eligible merged upstream PR; impact and current-code compatibility still need review. |
+| `reviewing` | Historical behavior, later refactors, and current-code compatibility are being investigated. |
 | `approved` | User approved implementation after review. |
 | `in-progress` | A dedicated SurfShack13 branch or PR exists. |
 | `blocked` | Requires a design decision, dependency, missing asset, or upstream investigation. |
 | `completed` | Implemented and merged into the authoritative SurfShack13 branch. |
 | `declined` | Reviewed and intentionally not being reversed. |
+| `superseded` | Replaced by another implementation or later feature. |
 
 ## Required workflow
 
@@ -85,10 +94,6 @@ These entries are ordered by their position in the original all-PR thumbs-down r
 ## Excluded original top-50 entries
 
 The remaining 20 entries from the original ranking are excluded because they were not merged upstream. They must not be added to this restoration queue unless a different merged PR is identified as the actual source of the live change.
-
-## Custom SurfShack13 changes
-
-Custom features that are not reversals of merged upstream PRs, such as Hyper Adrenaline, should be tracked in their own design or feature backlog rather than this restoration backlog.
 
 ## Command shorthand
 
