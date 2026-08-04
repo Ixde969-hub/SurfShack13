@@ -72,12 +72,21 @@
 /datum/ai_behavior/find_and_set/in_list/clean_targets/search_tactic(datum/ai_controller/basic_controller/bot/controller, locate_paths, search_range)
 	var/list/found = typecache_filter_list(oview(search_range, controller.pawn), locate_paths)
 	var/list/ignore_list = controller.blackboard[BB_TEMPORARY_IGNORE_LIST]
+	var/turf/pawn_turf = get_turf(controller.pawn)
+	if(isnull(pawn_turf))
+		return null
 	for(var/atom/found_item in found)
 		if(QDELETED(controller.pawn))
 			break
+		if(QDELETED(found_item))
+			continue
 		if(LAZYACCESS(ignore_list, found_item))
 			continue
-		if(get_turf(found_item) == get_turf(controller.pawn))
+		var/turf/found_turf = get_turf(found_item)
+		if(isnull(found_turf))
+			controller.add_to_blacklist(found_item)
+			continue
+		if(found_turf == pawn_turf)
 			return found_item
 		var/list/path = get_path_to(controller.pawn, found_item, max_distance = BOT_CLEAN_PATH_LIMIT, access = controller.get_access())
 		if(!length(path))
