@@ -5,6 +5,9 @@
 - Status: `in-progress`
 - Branch: `agent/port-saiyan-race`
 - Implementation PR: `Ixde969-hub/SurfShack13#17` (draft)
+- Upstream fix branch: `agent/port-saiyan-race-upstream-fixes`
+- Upstream fix commit: `664b3b2c8cda0e3eea487a6fce701c867ed548fb`
+- Upstream PR status: blocked because the connected GitHub integration cannot create pull requests in `ZealousZeke/SurfShack13` or `peppyrmynt/SurfShack13` (`403 Resource not accessible by integration`)
 - Source repository: `tgstation/tgstation`
 - Source material: `tgstation/tgstation#82347` (`The Great Saiyan Race`, April Fools 2024)
 - Source status: closed/unmerged on `/tg/station`; this is not a `/tg/station` restoration.
@@ -30,7 +33,8 @@
 - Commit `12327139dea50dbde50ce8f8df8cb7866e6bb780` restores the normal monkey state names while retaining the separate `m_tail_saiyan_monkey_*` states; it intentionally did not alter the ported frame pixels.
 - CI Suite run `30935517205` passed compile, lint, map, organ, and integration checks but still failed the ordinary-monkey screenshot because 24 pixels had also been removed from the original normal-monkey frames by the ported DMI.
 - Commit `184fe6dc1c74d4ed8c9d482eba5b6df774553660` restores the eight original normal-monkey frames exactly while preserving the eight separate Saiyan frames and all four DMI state definitions.
-- CI Suite validation is pending for the current PR head.
+- CI Suite run `30937101392` (run 101) passed completely on validation head `26cb53bcbc424ad3a33565a8715b636d4937f954`.
+- Commit `664b3b2c8cda0e3eea487a6fce701c867ed548fb` reapplies only the validated five-file correction on top of `ZealousZeke:The-Great-Saiyan` head `ad9e66e42286a90d00ef41f0a59372387262a8bf`; the clean branch is one commit ahead and changes only the four Saiyan runtime files plus `monkey_tail.dmi`.
 
 ### Testing Requirements
 
