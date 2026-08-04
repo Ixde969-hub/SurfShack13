@@ -25,7 +25,7 @@
 - The implementation has been hardened against empty-bodypart power-level calculation, missing internal Saiyan body during Great Ape death, missing tail organs during forced Great Ape tail severing, and missing/deleted owner during tail transform checks.
 - GitHub integration previously failed `organ_sanity` because a standalone Saiyan tail overlay had no sprite datum before species/DNA imprinting.
 - Commit `e8eaef533da0dacadd53fd9cbc9ca17752014b4b` initializes the overlay with the Saiyan tail accessory while preserving later species/DNA imprinting.
-- CI Suite run `94` is pending validation for the fix.
+- CI Suite validation is in progress for the current PR head.
 
 ### Testing Requirements
 
