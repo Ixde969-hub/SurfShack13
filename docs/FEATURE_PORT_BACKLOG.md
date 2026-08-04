@@ -27,7 +27,9 @@
 - Commit `e8eaef533da0dacadd53fd9cbc9ca17752014b4b` initialized the overlay with the Saiyan tail accessory, but CI Suite run 96 showed that generic organ insertion subsequently attempted to imprint a null DNA feature and cleared it.
 - Commit `7f9369c99e7d552aa2448b464563b2f66f404daa` keeps the fixed Saiyan tail accessory and disables the later one-time DNA imprint for this single-accessory overlay.
 - CI Suite run `30931192424` passed the integration tests but failed humanoid screenshot comparison because the monkey-tail DMI replaced the normal `m_tail_monkey_default_*` states, making ordinary monkey tails invisible.
-- Commit `12327139dea50dbde50ce8f8df8cb7866e6bb780` restores the normal monkey state names while retaining the separate `m_tail_saiyan_monkey_*` states; the DMI pixel data is unchanged.
+- Commit `12327139dea50dbde50ce8f8df8cb7866e6bb780` restores the normal monkey state names while retaining the separate `m_tail_saiyan_monkey_*` states; it intentionally did not alter the ported frame pixels.
+- CI Suite run `30935517205` passed compile, lint, map, organ, and integration checks but still failed the ordinary-monkey screenshot because 24 pixels had also been removed from the original normal-monkey frames by the ported DMI.
+- Commit `184fe6dc1c74d4ed8c9d482eba5b6df774553660` restores the eight original normal-monkey frames exactly while preserving the eight separate Saiyan frames and all four DMI state definitions.
 - CI Suite validation is pending for the current PR head.
 
 ### Testing Requirements
