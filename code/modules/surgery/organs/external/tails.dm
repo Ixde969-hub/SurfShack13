@@ -235,6 +235,8 @@
 
 /// Start being an ape
 /obj/item/organ/tail/monkey/saiyan/proc/go_ape()
+	if(!istype(owner) || QDELETED(owner))
+		return
 	if (HAS_TRAIT(owner, TRAIT_SHAPESHIFTED) || owner.stat == DEAD)
 		return
 	owner.visible_message(span_warning("[owner] transforms into a huge, ape-like creature!"))
@@ -249,10 +251,13 @@
 
 /obj/item/organ/tail/monkey/saiyan/proc/ape_died()
 	SIGNAL_HANDLER
-	owner.death()
+	if(istype(owner) && !QDELETED(owner))
+		owner.death()
 
 /// Stop being an ape
 /obj/item/organ/tail/monkey/saiyan/proc/escape_ape()
+	if(!istype(owner) || QDELETED(owner))
+		return
 	if (!HAS_TRAIT(owner, TRAIT_SHAPESHIFTED))
 		return
 	var/mob/living/ape_form = owner.loc
