@@ -69,9 +69,9 @@
 	return ..()
 
 /mob/living/carbon/human/try_hyper_curbstomp(atom/attack_target, proximity_flag)
-	if(CONFIG_GET(number/damage_multiplier) < 2)
-		return FALSE
 	if(!proximity_flag || src == attack_target || !shoes)
+		return FALSE
+	if(!GLOB.hyper_adrenaline_active)
 		return FALSE
 
 	if(!iscarbon(attack_target))
@@ -91,8 +91,9 @@
 		return FALSE
 
 	target.visible_message(span_danger("<B>[src] stomps down on [target]'s head with horrifying force!</B>"), span_userdanger("[src] stomps down on your head!"), span_hear("You hear a sickening crunch!"), COMBAT_MESSAGE_RANGE, src)
+	to_chat(src, span_danger("You stomp down on [target]'s head with horrifying force!"))
 	log_combat(src, target, "curbstomped")
-	if(target.catastrophic_brain_ejection(head_part, null, src, force_destroy_head = TRUE))
+	if(target.catastrophic_brain_ejection(head_part, null, src, force_destroy_head = TRUE, crushed = TRUE, delete_head = prob(50)))
 		COOLDOWN_START(target, hyper_trauma_cd, 1)
 		return TRUE
 	return FALSE
