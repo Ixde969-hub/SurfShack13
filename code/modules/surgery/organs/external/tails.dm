@@ -268,6 +268,7 @@
 
 /datum/bodypart_overlay/mutant/tail/monkey/saiyan
 	feature_key = "tail_saiyan"
+	imprint_on_next_insertion = FALSE
 
 /datum/bodypart_overlay/mutant/tail/monkey/saiyan/New()
 	. = ..()
