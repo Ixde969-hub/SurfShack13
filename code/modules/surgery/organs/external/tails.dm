@@ -301,10 +301,10 @@
 /datum/bodypart_overlay/mutant/tail_spines
 	layers = EXTERNAL_ADJACENT|EXTERNAL_BEHIND
 	feature_key = "tailspines"
-	/// Key for tail spine states, depends on the shape of the tail. Defined in the tail sprite datum.
-	var/tail_spine_key = NONE
 	///Spines wag when the tail does
 	var/wagging = FALSE
+	/// Key for tail spine states, depends on the shape of the tail. Defined in the tail sprite datum.
+	var/tail_spine_key = NONE
 
 /datum/bodypart_overlay/mutant/tail_spines/get_global_feature_list()
 	return SSaccessories.tail_spines_list
