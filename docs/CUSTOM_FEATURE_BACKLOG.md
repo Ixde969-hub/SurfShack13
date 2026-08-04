@@ -2,10 +2,12 @@
 
 ## Hyper Adrenaline Mode
 
-- **Status:** in-progress
+- **Status:** completed
 - **Branch:** `agent/feature-hyper-adrenaline-mode`
 - **Source:** peppyrmynt/SurfShack13 PR #370
 - **Category:** Custom SurfShack13 feature
+- **Final stabilization PR:** `Ixde969-hub/SurfShack13#16`
+- **Authoritative merge:** `a20db3146dd18082d4b16571d31ba5a31b1989d5`
 
 ### Intended gameplay behavior
 
@@ -50,6 +52,10 @@ Admins with Server permissions can select the mode before the round starts. Atte
 - Confirm normal rounds retain default damage, action timing, throwforce, embedding, chemistry, wounds, explosions, and catastrophic-trauma gating.
 - Confirm Hyper Adrenaline rounds apply the intended multipliers without changing max health or movement speed.
 - Confirm existing localized catastrophic trauma only runs while Hyper Adrenaline is active.
+
+### Completion record
+
+The combined stabilization head passed CI Suite run `30914851681` (run 87). PR #16 was then merged into the authoritative `master` branch as commit `a20db3146dd18082d4b16571d31ba5a31b1989d5`.
 
 ## Localized Catastrophic Trauma
 
@@ -105,6 +111,8 @@ PR #13 follow-up fixes align Hyper Adrenaline checks across wound, curbstomp, th
 
 PR #13 follow-up fixes also add direct attacker feedback for catastrophic head and chest events, resolve projectile shooters from projectile damage sources, and split catastrophic head removal into severed-head and popped/deleted-head presentations.
 
+The final combined stabilization changes, including martial-art damage integration, projectile and explosion cleanup, and runtime guards, were merged through PR #16 at commit `a20db3146dd18082d4b16571d31ba5a31b1989d5`.
+
 ### Validation results
 
 - Static whitespace check: passed with `git diff --check`.
@@ -113,6 +121,7 @@ PR #13 follow-up fixes also add direct attacker feedback for catastrophic head a
 - Runtime testing: not yet performed.
 - PR #13 follow-up local whitespace check: passed with `git diff --check`.
 - PR #13 follow-up direct DreamMaker compile: attempted after stopping the local server and removing a stale BYOND lock file, but `dm.exe tgstation.dme` still did not return before the command timeout.
+- Combined stabilization head `c178b2d3c5d7742025374c7a01e0f4d7c1630ed2` passed CI Suite run `30914851681` (run 87) before PR #16 was merged.
 
 ### Validation requirements
 
