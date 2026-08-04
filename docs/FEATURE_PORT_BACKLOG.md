@@ -4,6 +4,7 @@
 
 - Status: `in-progress`
 - Branch: `agent/port-saiyan-race`
+- Implementation PR: `Ixde969-hub/SurfShack13#17` (draft)
 - Source repository: `tgstation/tgstation`
 - Source material: `tgstation/tgstation#82347` (`The Great Saiyan Race`, April Fools 2024)
 - Source status: closed/unmerged on `/tg/station`; this is not a `/tg/station` restoration.
@@ -21,9 +22,10 @@
 
 ### SurfShack13 Compatibility Notes
 
-- Port compiles and lint passes on GitHub, but integration tests currently fail from runtime errors.
-- The implementation has been hardened against empty-bodypart power-level calculation, missing internal Saiyan body during Great Ape death, and missing tail organs during forced Great Ape tail severing.
-- Further validation is required after pushing fixes and rerunning GitHub integration checks.
+- The implementation has been hardened against empty-bodypart power-level calculation, missing internal Saiyan body during Great Ape death, missing tail organs during forced Great Ape tail severing, and missing/deleted owner during tail transform checks.
+- GitHub integration previously failed `organ_sanity` because a standalone Saiyan tail overlay had no sprite datum before species/DNA imprinting.
+- Commit `e8eaef533da0dacadd53fd9cbc9ca17752014b4b` initializes the overlay with the Saiyan tail accessory while preserving later species/DNA imprinting.
+- CI Suite run `94` is pending validation for the fix.
 
 ### Testing Requirements
 
