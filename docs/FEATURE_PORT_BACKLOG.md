@@ -2,16 +2,16 @@
 
 ## The Great Saiyan Race
 
-- Status: `in-progress`
+- Status: `completed`
 - Branch: `agent/port-saiyan-race`
-- Implementation PR: `Ixde969-hub/SurfShack13#17` (draft)
+- Implementation PR: `Ixde969-hub/SurfShack13#17` (merged)
+- Authoritative merge commit: `b500ed30a0e55597030a61c106ad782002ab13b6`
 - Upstream fix branch: `agent/port-saiyan-race-upstream-fixes`
 - Upstream fix commit: `664b3b2c8cda0e3eea487a6fce701c867ed548fb`
-- Upstream PR status: blocked because the connected GitHub integration cannot create pull requests in `ZealousZeke/SurfShack13` or `peppyrmynt/SurfShack13` (`403 Resource not accessible by integration`)
 - Source repository: `tgstation/tgstation`
 - Source material: `tgstation/tgstation#82347` (`The Great Saiyan Race`, April Fools 2024)
 - Source status: closed/unmerged on `/tg/station`; this is not a `/tg/station` restoration.
-- Current SurfShack13 PR under review: `peppyrmynt/SurfShack13#362`
+- Related upstream port PR: `peppyrmynt/SurfShack13#362`
 - Current porter: ZealousZeke
 - Original authors: /tg/station PR authors and contributors, review before final merge
 - Source license: AGPL-3.0-compatible `/tg/station` codebase; retain repository license notices
@@ -35,6 +35,7 @@
 - Commit `184fe6dc1c74d4ed8c9d482eba5b6df774553660` restores the eight original normal-monkey frames exactly while preserving the eight separate Saiyan frames and all four DMI state definitions.
 - CI Suite run `30937101392` (run 101) passed completely on validation head `26cb53bcbc424ad3a33565a8715b636d4937f954`.
 - Commit `664b3b2c8cda0e3eea487a6fce701c867ed548fb` reapplies only the validated five-file correction on top of `ZealousZeke:The-Great-Saiyan` head `ad9e66e42286a90d00ef41f0a59372387262a8bf`; the clean branch is one commit ahead and changes only the four Saiyan runtime files plus `monkey_tail.dmi`.
+- PR #17 was merged into the authoritative `master` branch as commit `b500ed30a0e55597030a61c106ad782002ab13b6`.
 
 ### Testing Requirements
 
@@ -44,7 +45,7 @@
 
 ## 7TV image emotes
 
-- **Status:** in-progress
+- **Status:** completed
 - **Source repository:** `tgstation/tgstation`
 - **Source reference:** closed-unmerged PR #90372, stable head commit `d72fcf2177c44000b350ab4a519b3b937513ff8c`
 - **Original author:** `mcbalaam`
@@ -58,6 +59,7 @@
   - the current global overlay helper is used for the three-second overhead image;
   - the current emote-help implementation automatically lists usable emotes and bolds those with playable audio.
 - **Dependencies:** current living emote registration, global overlay helpers, and the emote audio cooldown system.
-- **Validation:** CI compile passed on PR #11. Runtime report on PR #13 branch says the emotes do not appear in `*help`; follow-up PR #14 moves the emotes to the living emote tree, expands unit coverage for sentient living mobs, and passed CI.
-- **Pull request:** #11; follow-up fix #14.
-- **Limitations:** manual in-game audio, visual overlay, and `*help` verification remains required after the follow-up test runs in CI.
+- **Validation:** CI compile passed on PR #11. Runtime report on PR #13 branch said the emotes did not appear in `*help`; follow-up PR #14 moved the emotes to the living emote tree and expanded unit coverage. The combined follow-up head passed CI Suite run `30914851681` (run 87) before PR #16 was merged.
+- **Pull requests:** #11 and follow-up #14; final combined stabilization merged through #16.
+- **Authoritative merge:** PR #16, merge commit `a20db3146dd18082d4b16571d31ba5a31b1989d5`.
+- **Limitations:** manual in-game audio, visual overlay, and `*help` verification remains recommended.
