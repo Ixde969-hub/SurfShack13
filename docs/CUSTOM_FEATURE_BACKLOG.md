@@ -133,3 +133,96 @@ The final combined stabilization changes, including martial-art damage integrati
 - Verify brain reimplantation/revival.
 - Verify existing full-body gib behavior is unchanged.
 - Verify curbstomp on both critical and dead targets.
+
+## Shared Surf Feed
+
+- **Status:** in-progress
+- **Branch:** `agent/feature-shared-surf-feed`
+- **Pull request:** draft #18
+- **Category:** Custom SurfShack13 feature
+- **Current game-side head:** `41093d04d018cc7e269575035ee7a904fe87cd7c`
+
+### Intended gameplay behavior
+
+Surf clients expose an optional short-video browser. Players may watch different clips and scroll independently, but every multiplayer browser slot is intended to use one completely disposable provider account so account-level watches, skips, likes, and similar interactions influence one shared provider-owned recommendation profile. Video playback and scroll position are not synchronized.
+
+The selected multiplayer architecture uses one isolated remote-browser slot per player behind a SurfShack13-operated HTTPS allocation gateway. Provider passwords, recovery credentials, passkeys, and two-factor secrets must remain exclusively with the operator and must not be committed or placed in player-visible URLs.
+
+### Configurable values
+
+- Feature enabled or disabled by presence of the runtime URL configuration.
+- Public HTTPS gateway URL.
+- Number of remote-browser slots.
+- Slot allocation timeout and heartbeat interval.
+- Remote-browser viewport and mobile user-agent settings.
+- Optional viewer crop on each edge.
+- Disposable provider account and session-rotation procedure.
+
+### Affected systems
+
+- OOC client verbs and named BYOND browser window.
+- Gitignored runtime URL configuration.
+- External HTTPS allocation broker.
+- External isolated remote-browser pool.
+- Provider account/session operations.
+- Bandwidth, moderation, logging, and failure handling.
+
+### Expected interactions and balance assumptions
+
+- Each player receives at most one named feed window and one gateway slot at a time.
+- Players can browse independently; only the provider account's recommendation state is shared.
+- Feed use remains optional and isolated from critical gameplay UI.
+- Closing a feed should release only that player's allocation.
+- Exhausted, expired, revoked, or offline gateway sessions must fail without blocking the game client or server.
+- Mobile layout is preferred for a video-first presentation; visual cropping is not an access-control boundary.
+- The disposable account is assumed to be potentially compromised and must contain no personal information, private messages, payment methods, linked services, or valuable uploads.
+
+### Administrator and operator controls
+
+- Enable or disable the feature by adding or removing `data/shared_surf_feed_url.txt`.
+- Rotate the gateway URL without changing committed code.
+- Start, stop, or reset the allocation broker and browser pool.
+- Set the maximum number of simultaneous browser slots.
+- Revoke every provider session and replace the disposable account.
+- Adjust mobile viewport and crop values.
+- Inspect gateway health without logging provider credentials or player cookies.
+
+### Implementation record
+
+The game-side scaffold is implemented in `surfshack13/code/modules/mob/living/tweak.dm` and reads one HTTPS URL from `data/shared_surf_feed_url.txt`. It exposes **Open Shared Surf Feed** and **Close Shared Surf Feed** OOC verbs and uses one named 480x800 browser window per client.
+
+The multiplayer gateway scaffold is implemented under `tools/shared_surf_feed_gateway/`. Its broker allocates a configured remote-browser viewer URL to each browser client with a signed, HTTP-only cookie, maintains the allocation with heartbeats, releases it on close or timeout, and reports clean slot exhaustion. It does not start browsers, log into TikTok, or store provider credentials.
+
+### Validation results
+
+- CI Suite run `30982521110` completed successfully for game-side head `41093d04d018cc7e269575035ee7a904fe87cd7c`.
+- Local runtime smoke test: passed. The configured TikTok URL opened in the named BYOND browser, the scrolling feed rendered, and the same client could not create duplicate named feed windows.
+- Gateway broker syntax check: passed with Python `py_compile`.
+- Gateway broker local allocation smoke test: passed with two dummy HTTPS slots; allocation, signed cookie, heartbeat, and health counts behaved as expected.
+- Multi-client game runtime: not yet performed.
+- Shared provider-account recommendation behavior: not yet verified.
+
+### Testing requirements
+
+- Deploy at least two isolated remote-browser slots behind valid HTTPS viewer URLs.
+- Log every slot into the same empty, disposable provider account.
+- Open the gateway from at least two real game clients and confirm each receives a different slot.
+- Confirm both players can scroll and like independently without controlling each other's browser.
+- Confirm closing and timeout release only the correct allocation.
+- Confirm slot exhaustion produces an unavailable page and does not affect the game server.
+- Confirm mobile layout or cropping hides unwanted navigation without hiding scroll and like controls.
+- Confirm login persistence, verification challenges, concurrent-session limits, and session invalidation behavior.
+- Confirm combined interactions visibly alter the shared account's recommendations.
+- Confirm no password, recovery credential, two-factor secret, passkey, or reusable provider cookie appears in the repository, runtime URL, player-visible page, or logs.
+- Intentionally revoke every account session and verify clean recovery or account replacement.
+
+### Known limitations and blockers
+
+- No public gateway or browser pool is deployed by this repository.
+- The broker uses in-memory allocation state and is intended to run as one process during the prototype.
+- Browser-slot creation, login, health checks, and cleanup are operator-managed.
+- Viewer URLs are delivered to clients and require their own access controls.
+- Visual cropping cannot prevent determined access to account settings or session material.
+- Provider verification, simultaneous-session limits, policy enforcement, or account suspension may block the design.
+- Bandwidth per remote desktop may be too high for production use.
+- PR #18 remains draft and must not be merged until a real multi-client gateway test is documented.
