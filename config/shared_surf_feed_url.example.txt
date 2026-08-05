@@ -1,0 +1,11 @@
+# Copy this file to data/shared_surf_feed_url.txt on the game server.
+# The data directory is gitignored. Never commit a provider password, recovery
+# credential, two-factor secret, passkey, or valuable account session here.
+#
+# Use one HTTPS URL only. For the direct-session prototype this should be either:
+# - a server-owned session-bootstrap URL that establishes the disposable account
+#   session and redirects to TikTok or Instagram; or
+# - a provider URL for manual-login testing.
+#
+# Example placeholder:
+https://feed-bootstrap.example.invalid/open
