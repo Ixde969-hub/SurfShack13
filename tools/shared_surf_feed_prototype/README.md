@@ -2,11 +2,11 @@
 
 Status: `in-progress` custom SurfShack13 prototype tracked in `docs/CUSTOM_FEATURE_BACKLOG.md` and draft PR #18.
 
-## Selected prototype
+## Selected behavior
 
-Each player receives an independently openable browser window. Every window is intended to use the same disposable TikTok or Instagram account, so players may see different current clips while their account-level watches, skips, likes, follows, and other interactions influence one provider-owned recommendation profile.
+Each player receives an independently openable feed window and may browse at their own pace. The multiplayer target is for every player-facing session to use the same completely disposable TikTok account, so independent watches, skips, and likes contribute to one provider-owned recommendation profile. Playback and scroll position are not synchronized.
 
-SurfShack13 does not implement its own recommendation algorithm, copy a media library, or synchronize playback.
+SurfShack13 does not implement its own recommendation algorithm or copy a media library.
 
 ## Implemented game-side scaffold
 
@@ -27,21 +27,34 @@ The entire `data/` directory is gitignored. A documented placeholder is provided
 
 Only an HTTPS URL is accepted. Missing, empty, or non-HTTPS configuration produces an unavailable message and does not block the client or game server.
 
-## Operator setup
+## Validation completed
 
-1. Create a completely disposable TikTok or Instagram test account.
-2. Keep its password, recovery mailbox, passkey, recovery codes, and two-factor secret outside the repository and player browser.
-3. Copy `config/shared_surf_feed_url.example.txt` to `data/shared_surf_feed_url.txt`.
-4. Replace the placeholder with either:
-   - a server-owned bootstrap URL that establishes the disposable provider session and redirects to the provider; or
-   - the provider page URL for an initial manual-login test.
-5. Restart the game server, then use the OOC open/close verbs.
+- CI Suite run `30982521110` completed successfully for game-side head `41093d04d018cc7e269575035ee7a904fe87cd7c`.
+- A local BYOND runtime smoke test opened the TikTok homepage and scrolling feed inside the named browser window.
+- The same client could not create duplicate named Shared Surf Feed windows.
+- Direct single-client playback, scrolling, and TikTok navigation were visibly functional.
 
-A bootstrap URL may expose reusable session material to clients. The prototype explicitly accepts that risk. Treat extracted session material as possible full access to the disposable account, not as a watch-only permission.
+This proves the configured URL, BYOND browser surface, and basic TikTok rendering path. It does not prove shared login, simultaneous clients, cookie persistence, or recommendation sharing.
+
+## Multiplayer phase
+
+The selected multiplayer architecture is now a remote-browser gateway:
+
+```text
+Player web client
+    -> one public HTTPS allocation broker
+    -> one independently controlled remote-browser slot
+    -> same disposable TikTok account in every slot
+    -> provider-owned recommendation algorithm
+```
+
+The first gateway scaffold is in `tools/shared_surf_feed_gateway/`. It allocates a fixed remote-browser viewer to each player and releases it when the feed closes or expires. Browser creation and provider login remain operator-managed.
+
+Once deployed, `data/shared_surf_feed_url.txt` should contain only the public gateway URL, not the direct TikTok URL and never an account secret.
 
 ## Credential boundary
 
-Never place any of these in DM code, TGUI/FrogUI JavaScript, tracked configuration, changelogs, logs, or the bootstrap URL itself:
+Never place any of these in DM code, TGUI/FrogUI JavaScript, tracked configuration, changelogs, logs, the runtime URL, or the broker configuration delivered to players:
 
 - account password;
 - recovery mailbox credentials;
@@ -49,42 +62,41 @@ Never place any of these in DM code, TGUI/FrogUI JavaScript, tracked configurati
 - passkeys;
 - credentials reused by any other account.
 
-The disposable account should contain no personal information, private messages, payment methods, linked services, or valuable uploads. Recovery and 2FA must remain exclusively under the server owner's control.
+Every remote-browser slot must use an empty, replaceable account with no personal information, private messages, payment methods, linked services, or valuable uploads. Recovery and two-factor authentication must remain exclusively under the server owner's control.
 
-## Prototype data flow
+A remote browser reduces direct cookie distribution, but it is not a guaranteed watch-only boundary. A player may still reach account controls or obtain broad account access. The security boundary is account disposability and owner-controlled recovery.
 
-```text
-Player web client
-    -> Open Shared Surf Feed
-    -> configured HTTPS bootstrap/provider URL
-    -> separate player browser session
-    -> one disposable provider account
-    -> provider-owned recommendation algorithm
-```
+## Video-first presentation
 
-A centrally streamed remote browser remains a fallback only if the provider prevents simultaneous sessions or if synchronized playback is later desired.
+The direct TikTok page includes TikTok's own sidebar. SurfShack13 cannot reliably remove or restyle that cross-origin page from the game wrapper.
 
-## Required validation
+For gateway sessions:
 
-Test TikTok and Instagram independently and record:
+1. Prefer a narrow mobile viewport and mobile user agent to request a video-first layout.
+2. Use the gateway's optional viewer crop only when necessary to hide remaining remote-browser chrome or navigation.
 
-- whether the named browser window opens and closes without disrupting gameplay;
-- whether the provider permits navigation inside the game web client;
-- whether cookies/login survive closing, reopening, and reconnecting;
-- maximum simultaneous sessions observed;
-- whether one client invalidates another;
-- whether verification challenges prevent bootstrap;
-- whether multiple clients' interactions visibly change the shared account recommendations;
-- autoplay, sound, keyboard focus, scrolling, touch, and mouse behavior;
-- account recovery after intentionally extracting and reusing a test session.
+Cropping is presentation only and must never be treated as security.
+
+## Required multiplayer validation
+
+- Open the gateway from at least two actual game clients.
+- Confirm each client receives a different browser slot and can browse independently.
+- Confirm every slot is logged into the same disposable account.
+- Confirm closing one feed releases only that slot.
+- Confirm slot exhaustion and gateway failure degrade to an unavailable page.
+- Confirm session cookies and login survive the intended browser and reconnect lifecycle.
+- Confirm one slot does not invalidate or forcibly control another.
+- Confirm combined account activity visibly changes recommendations.
+- Record autoplay, sound, keyboard focus, scrolling, mouse behavior, bandwidth, verification challenges, and provider enforcement.
+- Intentionally revoke the account sessions and confirm clean recovery or replacement.
 
 ## Current limitations
 
-- No real provider account or session is included.
-- No bootstrap service is implemented in this repository.
-- Browser security or provider policy may prevent session injection or in-window navigation.
-- The provider page may redirect to an external tab rather than remain embedded, depending on the web client.
-- No compile or runtime validation has been completed for the new verbs yet.
-- No reliable restriction prevents an extracted authenticated session from opening account settings.
+- The allocation broker is a scaffold; no public gateway or browser pool is deployed by this repository.
+- No multi-client runtime test has been completed.
+- Provider verification, simultaneous-session limits, or policy enforcement may block the architecture.
+- Browser-slot URLs and remote sessions require separate HTTPS hosting and operational security.
+- No reliable restriction prevents a player from reaching account settings through the remote browser.
+- The provider account must be treated as disposable and potentially compromised.
 
-The PR must remain draft until one provider works with multiple simultaneous clients and the results are recorded in the backlog.
+PR #18 must remain draft until the gateway works with multiple simultaneous clients and the results are recorded in the backlog.
