@@ -133,3 +133,69 @@ The final combined stabilization changes, including martial-art damage integrati
 - Verify brain reimplantation/revival.
 - Verify existing full-body gib behavior is unchanged.
 - Verify curbstomp on both critical and dead targets.
+
+## Shared Surf Feed
+
+- **Status:** reviewing
+- **Branch:** `agent/feature-shared-surf-feed`
+- **Category:** Custom SurfShack13 feature
+
+### Intended gameplay behavior
+
+Surf clients expose an optional short-video feed whose recommendation state is shared by the entire server. Watching, skipping, liking, or disliking an item updates one server-owned profile, allowing the crew to collectively shape what appears next. The feature should create social discovery and harmless competition over the station-wide feed without exposing player credentials.
+
+The initial implementation must use a SurfShack13-owned feed service or a curated provider-neutral catalog. It must not distribute a shared TikTok or Instagram login, scrape private endpoints, or place third-party authentication tokens in BYOND clients.
+
+### Configurable values
+
+- Feature enabled or disabled.
+- Feed scope: per-round or persistent per-server.
+- Maximum item duration and cache size.
+- Weighting for watch completion, skip, like, and dislike events.
+- Minimum interaction count before recommendation changes are applied.
+- Provider allowlist and content-rating policy.
+- Whether anonymous aggregate statistics are shown to players.
+
+### Affected systems
+
+- Surf client user interface.
+- TGUI/browser media presentation.
+- Server-side shared feed state.
+- Optional external feed-service HTTP integration.
+- Configuration and secrets handling.
+- Logging, moderation, and content caching.
+- Round-start reset behavior.
+
+### Expected interactions and balance assumptions
+
+- All interactions affect aggregate recommendation state; individual viewing histories are not exposed.
+- A single player must not be able to dominate the feed through rapid repeated actions.
+- Media playback must remain optional, muted by default, and isolated from critical gameplay UI.
+- Failure of the external service must degrade cleanly to an unavailable message or curated fallback rather than blocking the game server.
+- The design must account for bandwidth, autoplay restrictions, BYOND browser compatibility, third-party embedding restrictions, and unsuitable content.
+
+### Administrator controls
+
+- Enable or disable the feed globally.
+- Reset shared recommendation state.
+- Select per-round or persistent scope.
+- Remove or block a feed item/provider.
+- Inspect aggregate interaction statistics and service-health information.
+- Force the curated fallback mode.
+
+### Testing requirements
+
+- Confirm multiple clients receive the same shared state and concurrent interactions are applied safely.
+- Confirm rate limits prevent one client from flooding recommendation changes.
+- Confirm round reset and persistent modes behave as configured.
+- Confirm disabled, offline, timeout, malformed-response, and empty-feed cases fail safely.
+- Confirm no provider credentials, session cookies, or authentication tokens are sent to clients or written to player-visible logs.
+- Confirm blocked content cannot re-enter through cache or recommendation refresh.
+- Confirm media playback does not capture keyboard input or interfere with normal TGUI operation.
+
+### Review blockers
+
+- Identify the existing Surf client implementation and its current browser/TGUI capabilities.
+- Choose a legally and technically supportable content source. Direct shared TikTok/Instagram account sessions are explicitly out of scope.
+- Define moderation, hosting, bandwidth, privacy, and retention requirements for the shared feed service.
+- Decide whether the first version is a curated in-repository catalog or requires a separately deployed backend.
