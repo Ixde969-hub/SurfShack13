@@ -82,7 +82,9 @@ ADMIN_VERB(toggle_hyper_adrenaline, R_SERVER, "Toggle Hyper Adrenaline", "Enable
 
 	// json_encode provides a safely quoted JavaScript string without logging or displaying the URL.
 	var/redirect_html = "<!doctype html><html><head><meta charset='utf-8'><title>Shared Surf Feed</title></head><body><p>Opening shared feed...</p><script>window.location.replace([json_encode(feed_url)]);</script></body></html>"
-	src << browse(redirect_html, "window=[SHARED_SURF_FEED_WINDOW];size=480x800;can_close=1;can_resize=1;titlebar=1")
+	// A compact mobile-like viewport is the least brittle way to encourage providers
+	// to collapse desktop navigation while keeping the video and interaction controls.
+	src << browse(redirect_html, "window=[SHARED_SURF_FEED_WINDOW];size=390x800;can_close=1;can_resize=1;titlebar=1")
 
 /client/verb/close_shared_surf_feed()
 	set name = "Close Shared Surf Feed"
