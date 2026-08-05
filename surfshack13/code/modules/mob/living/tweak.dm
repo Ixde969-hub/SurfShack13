@@ -54,3 +54,42 @@ ADMIN_VERB(toggle_hyper_adrenaline, R_SERVER, "Toggle Hyper Adrenaline", "Enable
 	message_admins(span_adminnotice("[key_name_admin(user)] has [state_text] Hyper Adrenaline for the upcoming round."))
 	to_chat(world, span_notice("<b>Hyper Adrenaline has been [state_text] for the upcoming round.</b>"), confidential = TRUE)
 	SSblackbox.record_feedback("nested tally", "admin_toggle", 1, list("Toggle Hyper Adrenaline", GLOB.hyper_adrenaline_next_round ? "Enabled" : "Disabled"))
+
+#define SHARED_SURF_FEED_CONFIG_PATH "data/shared_surf_feed_url.txt"
+#define SHARED_SURF_FEED_WINDOW "shared_surf_feed"
+
+/// Returns the operator-provided session-bootstrap or provider URL.
+/// The data directory is gitignored so account session material is never committed.
+/proc/get_shared_surf_feed_url()
+	if(!fexists(SHARED_SURF_FEED_CONFIG_PATH))
+		return null
+
+	var/feed_url = trim(file2text(SHARED_SURF_FEED_CONFIG_PATH))
+	if(!length(feed_url) || findtext(lowertext(feed_url), "https://") != 1)
+		return null
+
+	return feed_url
+
+/client/verb/open_shared_surf_feed()
+	set name = "Open Shared Surf Feed"
+	set category = "OOC"
+	set desc = "Open the experimental shared TikTok or Instagram account feed."
+
+	var/feed_url = get_shared_surf_feed_url()
+	if(!feed_url)
+		to_chat(src, span_warning("The shared Surf feed is unavailable or has not been configured."))
+		return
+
+	// json_encode provides a safely quoted JavaScript string without logging or displaying the URL.
+	var/redirect_html = "<!doctype html><html><head><meta charset='utf-8'><title>Shared Surf Feed</title></head><body><p>Opening shared feed...</p><script>window.location.replace([json_encode(feed_url)]);</script></body></html>"
+	src << browse(redirect_html, "window=[SHARED_SURF_FEED_WINDOW];size=480x800;can_close=1;can_resize=1;titlebar=1")
+
+/client/verb/close_shared_surf_feed()
+	set name = "Close Shared Surf Feed"
+	set category = "OOC"
+	set desc = "Close the experimental shared feed window."
+
+	src << browse(null, "window=[SHARED_SURF_FEED_WINDOW]")
+
+#undef SHARED_SURF_FEED_CONFIG_PATH
+#undef SHARED_SURF_FEED_WINDOW
