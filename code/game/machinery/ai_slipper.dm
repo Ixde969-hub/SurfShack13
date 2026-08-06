@@ -54,6 +54,5 @@
 	power_change()
 	addtimer(CALLBACK(src, PROC_REF(power_change)), cooldown_time)
 
-// Keep the stage-one synchronized television prototype in its own file while
-// avoiding unrelated generated DME churn for this technical spike.
-#include "synchronized_tv.dm"
+// Custom SurfShack13 machinery is kept outside the upstream code directory.
+#include "../../../surfshack13/code/game/machinery/synchronized_tv.dm"
