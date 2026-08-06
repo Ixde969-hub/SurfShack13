@@ -17,10 +17,14 @@ jobs:
         with:
           ref: agent/feature-synced-video-tv
       - uses: ./.github/actions/setup_node
+        with:
+          restore-yarn-cache: true
+      - name: Install locked TGUI dependencies
+        working-directory: tgui
+        run: yarn install --immutable
       - name: Format the synchronized television interface
-        run: |
-          cd tgui
-          yarn prettier --write packages/tgui/interfaces/SynchronizedTelevision.tsx
+        working-directory: tgui
+        run: yarn prettier --write packages/tgui/interfaces/SynchronizedTelevision.tsx
       - name: Commit formatter output and remove this workflow
         run: |
           git config user.name "github-actions[bot]"
