@@ -35,4 +35,5 @@
 	TEST_ASSERT(surfshack_extract_youtube_id("https://www.youtube.com/shorts/dQw4w9WgXcQ") == "dQw4w9WgXcQ", "A Shorts URL should be accepted.")
 	TEST_ASSERT(!surfshack_extract_youtube_id("https://example.com/watch?v=dQw4w9WgXcQ"), "Non-YouTube hosts must be rejected.")
 	TEST_ASSERT(!surfshack_extract_youtube_id("https://example.com/youtu.be/dQw4w9WgXcQ"), "YouTube-looking paths on unrelated hosts must be rejected.")
-	TEST_ASSERT(!surfshack_extract_youtube_id("not-a-video"), "Malformed IDs must be rejected.")
+	TEST_ASSERT(!surfshack_extract_youtube_id("too-short"), "IDs with the wrong length must be rejected.")
+	TEST_ASSERT(!surfshack_extract_youtube_id("invalid$id1"), "IDs with non-URL-safe characters must be rejected.")
