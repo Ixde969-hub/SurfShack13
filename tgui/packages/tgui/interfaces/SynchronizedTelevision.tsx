@@ -63,10 +63,7 @@ export const SynchronizedTelevision = (props) => {
           buttons={
             <>
               {can_control && (
-                <Button
-                  icon="folder-open"
-                  onClick={() => act('load_video')}
-                >
+                <Button icon="folder-open" onClick={() => act('load_video')}>
                   Load YouTube Video
                 </Button>
               )}
@@ -134,7 +131,9 @@ const YouTubePlayer = (props: YouTubePlayerProps) => {
   const playerRef = useRef<HTMLIFrameElement>(null);
   const expectedPositionRef = useRef(expectedPosition);
   const volumeRef = useRef(volume);
-  const [startPosition] = useState(() => Math.max(0, Math.floor(initialPosition)));
+  const [startPosition] = useState(() =>
+    Math.max(0, Math.floor(initialPosition)),
+  );
 
   expectedPositionRef.current = expectedPosition;
   volumeRef.current = volume;
@@ -188,7 +187,11 @@ const YouTubePlayer = (props: YouTubePlayerProps) => {
           allow="autoplay; encrypted-media; picture-in-picture"
           allowFullScreen
           onLoad={resync}
-          style={{ border: 0, height: '100%', width: '100%' }}
+          style={{
+            border: 0,
+            height: '100%',
+            width: '100%',
+          }}
         />
       </Box>
       <Button mt={1} icon="sync" onClick={resync}>
