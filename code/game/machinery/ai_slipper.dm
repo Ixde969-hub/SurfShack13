@@ -53,3 +53,6 @@
 	COOLDOWN_START(src, foam_cooldown,cooldown_time)
 	power_change()
 	addtimer(CALLBACK(src, PROC_REF(power_change)), cooldown_time)
+
+// Custom SurfShack13 machinery is kept outside the upstream code directory.
+#include "../../../surfshack13/code/game/machinery/synchronized_tv.dm"

@@ -26,3 +26,14 @@
 	))
 
 	TEST_ASSERT_EQUAL(expected, output, "TGUI_CREATE_MESSAGE didn't round trip properly")
+
+/// Test synchronized television YouTube URL normalization and host validation.
+/datum/unit_test/synchronized_tv_youtube_id/Run()
+	TEST_ASSERT(surfshack_extract_youtube_id("dQw4w9WgXcQ") == "dQw4w9WgXcQ", "A raw YouTube ID should be accepted.")
+	TEST_ASSERT(surfshack_extract_youtube_id("https://www.youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ", "A standard watch URL should be accepted.")
+	TEST_ASSERT(surfshack_extract_youtube_id("https://youtu.be/dQw4w9WgXcQ?t=10") == "dQw4w9WgXcQ", "A short URL should be accepted and query parameters stripped.")
+	TEST_ASSERT(surfshack_extract_youtube_id("https://www.youtube.com/shorts/dQw4w9WgXcQ") == "dQw4w9WgXcQ", "A Shorts URL should be accepted.")
+	TEST_ASSERT(!surfshack_extract_youtube_id("https://example.com/watch?v=dQw4w9WgXcQ"), "Non-YouTube hosts must be rejected.")
+	TEST_ASSERT(!surfshack_extract_youtube_id("https://example.com/youtu.be/dQw4w9WgXcQ"), "YouTube-looking paths on unrelated hosts must be rejected.")
+	TEST_ASSERT(!surfshack_extract_youtube_id("too-short"), "IDs with the wrong length must be rejected.")
+	TEST_ASSERT(!surfshack_extract_youtube_id("invalid$id1"), "IDs with non-URL-safe characters must be rejected.")
