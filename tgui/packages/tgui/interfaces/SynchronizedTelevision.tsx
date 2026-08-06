@@ -99,9 +99,7 @@ export const SynchronizedTelevision = (props) => {
             <LabeledList.Item label="Distance">
               {distance} / {viewing_range} tiles
             </LabeledList.Item>
-            <LabeledList.Item label="Local volume">
-              {volume}%
-            </LabeledList.Item>
+            <LabeledList.Item label="Local volume">{volume}%</LabeledList.Item>
             <LabeledList.Item label="Synchronization">
               Server timeline, corrected every {drift_interval} seconds
             </LabeledList.Item>
@@ -121,13 +119,8 @@ type YouTubePlayerProps = {
 };
 
 const YouTubePlayer = (props: YouTubePlayerProps) => {
-  const {
-    videoId,
-    initialPosition,
-    expectedPosition,
-    volume,
-    driftInterval,
-  } = props;
+  const { videoId, initialPosition, expectedPosition, volume, driftInterval } =
+    props;
   const playerRef = useRef<HTMLIFrameElement>(null);
   const expectedPositionRef = useRef(expectedPosition);
   const volumeRef = useRef(volume);
