@@ -12,27 +12,52 @@
 
 	var/lower_input = lowertext(input_text)
 	var/id_start
-	var/marker_position
+	var/path_start
+	var/list/short_url_prefixes = list(
+		"https://youtu.be/",
+		"http://youtu.be/",
+		"youtu.be/",
+	)
+	var/list/youtube_host_prefixes = list(
+		"https://www.youtube.com/",
+		"http://www.youtube.com/",
+		"https://youtube.com/",
+		"http://youtube.com/",
+		"https://m.youtube.com/",
+		"http://m.youtube.com/",
+		"www.youtube.com/",
+		"youtube.com/",
+		"m.youtube.com/",
+	)
 
-	marker_position = findtext(lower_input, "youtu.be/")
-	if(marker_position)
-		id_start = marker_position + length("youtu.be/")
-	else
-		marker_position = findtext(lower_input, "youtube.com/embed/")
-		if(marker_position)
-			id_start = marker_position + length("youtube.com/embed/")
+	for(var/prefix in short_url_prefixes)
+		if(findtext(lower_input, prefix) == 1)
+			id_start = length(prefix) + 1
+			break
+
+	if(!id_start)
+		for(var/prefix in youtube_host_prefixes)
+			if(findtext(lower_input, prefix) == 1)
+				path_start = length(prefix) + 1
+				break
+
+		if(!path_start)
+			return null
+
+		var/youtube_path = copytext(lower_input, path_start)
+		if(findtext(youtube_path, "embed/") == 1)
+			id_start = path_start + length("embed/")
+		else if(findtext(youtube_path, "shorts/") == 1)
+			id_start = path_start + length("shorts/")
+		else if(findtext(youtube_path, "watch") == 1)
+			var/video_parameter = findtext(lower_input, "?v=", path_start)
+			if(!video_parameter)
+				video_parameter = findtext(lower_input, "&v=", path_start)
+			if(!video_parameter)
+				return null
+			id_start = video_parameter + length("?v=")
 		else
-			marker_position = findtext(lower_input, "youtube.com/shorts/")
-			if(marker_position)
-				id_start = marker_position + length("youtube.com/shorts/")
-			else
-				marker_position = findtext(lower_input, "youtube.com/watch")
-				if(!marker_position)
-					return null
-				var/video_parameter = findtext(lower_input, "v=", marker_position)
-				if(!video_parameter)
-					return null
-				id_start = video_parameter + length("v=")
+			return null
 
 	var/id_end = length(input_text) + 1
 	for(var/delimiter in list("&", "?", "#", "/"))
@@ -139,7 +164,7 @@
 			playback_offset_seconds = 0
 			playback_revision++
 			log_admin("[key_name(user)] loaded YouTube video [new_video_id] into [src] at [AREACOORD(src)].")
-			message_admins("[key_name_admin(user)] loaded YouTube video [new_video_id] into [ADMIN_LOOKUPFLW(src)].")
+			message_admins("[key_name_admin(user)] loaded YouTube video [new_video_id] into [src] at [AREACOORD(src)].")
 			SStgui.update_uis(src)
 			return TRUE
 
@@ -155,7 +180,7 @@
 			playback_offset_seconds = 0
 			playback_revision++
 			log_admin("[key_name(user)] stopped YouTube video [old_video_id || "(none)"] on [src] at [AREACOORD(src)].")
-			message_admins("[key_name_admin(user)] stopped the synchronized television at [ADMIN_LOOKUPFLW(src)].")
+			message_admins("[key_name_admin(user)] stopped the synchronized television [src] at [AREACOORD(src)].")
 			SStgui.update_uis(src)
 			return TRUE
 
@@ -180,6 +205,7 @@
 	TEST_ASSERT(surfshack_extract_youtube_id("https://youtu.be/dQw4w9WgXcQ?t=10") == "dQw4w9WgXcQ", "A short URL should be accepted and query parameters stripped.")
 	TEST_ASSERT(surfshack_extract_youtube_id("https://www.youtube.com/shorts/dQw4w9WgXcQ") == "dQw4w9WgXcQ", "A Shorts URL should be accepted.")
 	TEST_ASSERT(!surfshack_extract_youtube_id("https://example.com/watch?v=dQw4w9WgXcQ"), "Non-YouTube hosts must be rejected.")
+	TEST_ASSERT(!surfshack_extract_youtube_id("https://example.com/youtu.be/dQw4w9WgXcQ"), "YouTube-looking paths on unrelated hosts must be rejected.")
 	TEST_ASSERT(!surfshack_extract_youtube_id("not-a-video"), "Malformed IDs must be rejected.")
 
 #undef SYNCHRONIZED_TV_DEFAULT_RANGE
