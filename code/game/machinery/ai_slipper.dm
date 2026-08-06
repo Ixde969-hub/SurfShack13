@@ -53,3 +53,7 @@
 	COOLDOWN_START(src, foam_cooldown,cooldown_time)
 	power_change()
 	addtimer(CALLBACK(src, PROC_REF(power_change)), cooldown_time)
+
+// Keep the stage-one synchronized television prototype in its own file while
+// avoiding unrelated generated DME churn for this technical spike.
+#include "synchronized_tv.dm"
