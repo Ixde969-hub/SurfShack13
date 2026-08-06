@@ -133,3 +133,64 @@ The final combined stabilization changes, including martial-art damage integrati
 - Verify brain reimplantation/revival.
 - Verify existing full-body gib behavior is unchanged.
 - Verify curbstomp on both critical and dead targets.
+
+## Synchronized Station Television
+
+- **Status:** in-progress
+- **Branch:** `agent/feature-synced-video-tv`
+- **Pull request:** #19
+- **Category:** Custom SurfShack13 feature
+- **Implementation stage:** Stage 1 technical spike
+
+### Intended gameplay behavior
+
+An administrator can spawn a synchronized television prototype and load one YouTube video into it. Crew within the configured local range may interact with the machine to open a fixed in-client watch surface. Every viewer derives the expected playback position from the same server-owned playback epoch, so late viewers seek to the current shared position rather than starting from the beginning. Leaving the local range closes the interface and stops that client's embedded player.
+
+Stage 1 intentionally proves the browser, synchronization, and proximity model before adding crew submissions, queues, vote skipping, linked channels, map placement, or a browser surface visually anchored over the world map.
+
+### Configurable values
+
+- Viewing range: seven tiles in the prototype.
+- Local volume: 100% within two tiles, falling to 15% at the edge of the viewing range.
+- Drift-correction interval: fifteen seconds.
+- Provider allowlist: YouTube video IDs and common YouTube URL forms only.
+- Playback authority: one active video and one server playback epoch per television.
+
+### Affected systems
+
+- Spawnable machinery and machinery interaction.
+- TGUI browser rendering and external iframe playback.
+- Administrator media controls, logging, and announcements.
+- Per-viewer range checks and distance-scaled volume.
+- Unit-test discovery for YouTube URL validation.
+
+### Expected interactions and balance assumptions
+
+- Playback is local to users who deliberately interact with the television; it is not sent globally.
+- The embedded video is a fixed TGUI watch surface, not a native BYOND sprite texture.
+- Browser autoplay may require the viewer to press **Start / Resync** once.
+- The prototype does not yet check line of sight or walls and does not create ambient audio for players who have not opened the watch surface.
+- The machine uses no power during this technical spike so browser compatibility can be tested independently of mapping and power setup.
+- Only one active embedded television is expected per client during Stage 1.
+
+### Administrator controls
+
+Any connected administrator may load a validated YouTube URL or eleven-character video ID and may stop the current video. Load and stop actions are written to the admin log and announced to administrators. The object is available through existing Spawn Atom tooling; no round-start map placement is included.
+
+### Testing requirements
+
+- Compile DreamMaker and the TGUI bundle.
+- Run the synchronized-television YouTube-ID unit test.
+- Confirm invalid and non-YouTube URLs are rejected server-side.
+- Confirm non-administrators cannot load or stop a video.
+- Confirm two nearby clients begin at approximately the same shared position.
+- Confirm a late viewer seeks to the elapsed server position.
+- Confirm periodic correction and manual **Start / Resync** work.
+- Confirm moving beyond seven tiles closes playback.
+- Confirm distance changes adjust the embedded player's volume.
+- Confirm stopping or deleting the television removes active playback.
+- Confirm YouTube embedding and unmuted playback function in the supported DreamSeeker browser runtime.
+
+### Current implementation and validation
+
+PR #19 contains the backend machinery, server-side URL parser, unit assertions, fixed TGUI YouTube player, distance-volume updates, and periodic server-timeline seeking. The implementation is awaiting CI and runtime testing. Queueing, crew submissions, vote skipping, line-of-sight occlusion, linked channels, and map-anchored presentation remain explicitly out of scope for this PR.
