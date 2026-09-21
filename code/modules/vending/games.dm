@@ -25,6 +25,9 @@
 			"products" = list(
 				/obj/item/toy/captainsaid = 1,
 				/obj/item/toy/intento = 3,
+				/obj/item/toy/beach_ball/rally = 2,
+				/obj/item/toy/redbutton/vibe_checker = 2,
+				/obj/item/toy/redbutton/rps_referee = 2,
 				/obj/item/storage/box/tail_pin = 1,
 			),
 		),
@@ -117,3 +120,75 @@
 /obj/item/vending_refill/games
 	machine_name = "\improper Good Clean Fun"
 	icon_state = "refill_games"
+
+// Surf Shack fun pack: three harmless toys using existing art and systems.
+/obj/item/toy/beach_ball/rally
+	name = "rally beach ball"
+	desc = "A beach ball with a tiny rally counter. Keep it bouncing between people without letting it touch anything boring."
+	var/rally_hits = 0
+
+/obj/item/toy/beach_ball/rally/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
+	. = ..()
+	if(isliving(hit_atom))
+		rally_hits++
+		if(rally_hits >= 3)
+			visible_message(span_notice("[src]'s rally counter flashes [rally_hits]!"))
+		return
+	if(rally_hits)
+		visible_message(span_notice("[src]'s [rally_hits]-hit rally comes to an end."))
+		rally_hits = 0
+
+/obj/item/toy/redbutton/vibe_checker
+	name = "vibe checker"
+	desc = "A needlessly authoritative button that assigns a completely scientific vibe score."
+
+/obj/item/toy/redbutton/vibe_checker/attack_self(mob/user)
+	if(cooldown > world.time)
+		to_chat(user, span_warning("The vibe checker is still recalibrating."))
+		return
+	cooldown = world.time + 20
+	var/vibe_score = rand(0, 100)
+	var/vibe_readout
+	if(vibe_score <= 20)
+		vibe_readout = "critically questionable"
+	else if(vibe_score <= 40)
+		vibe_readout = "a little suspicious"
+	else if(vibe_score <= 60)
+		vibe_readout = "perfectly average"
+	else if(vibe_score <= 80)
+		vibe_readout = "immaculate"
+	else
+		vibe_readout = "astronomical"
+	user.visible_message(
+		span_notice("[user] checks their vibe. [src] reports [vibe_score]/100: [vibe_readout]!"),
+		span_notice("You check your vibe. [src] reports [vibe_score]/100: [vibe_readout]!"),
+	)
+
+/obj/item/toy/redbutton/rps_referee
+	name = "rock-paper-scissors referee"
+	desc = "A pocket referee for the oldest conflict-resolution protocol known to spacers."
+
+/obj/item/toy/redbutton/rps_referee/attack_self(mob/user)
+	if(cooldown > world.time)
+		to_chat(user, span_warning("The referee demands a rematch pause."))
+		return
+	var/player_choice = tgui_input_list(user, "Choose your move.", "Rock, Paper, Scissors", list("Rock", "Paper", "Scissors"))
+	if(isnull(player_choice))
+		return
+	cooldown = world.time + 10
+	var/referee_choice = pick("Rock", "Paper", "Scissors")
+	var/result
+	if(player_choice == referee_choice)
+		result = "It's a tie"
+	else if(
+		(player_choice == "Rock" && referee_choice == "Scissors") ||
+		(player_choice == "Paper" && referee_choice == "Rock") ||
+		(player_choice == "Scissors" && referee_choice == "Paper")
+	)
+		result = "[user] wins"
+	else
+		result = "[src] wins"
+	user.visible_message(
+		span_notice("[user] plays [player_choice]. [src] plays [referee_choice]. [result]!"),
+		span_notice("You play [player_choice]. [src] plays [referee_choice]. [result]!"),
+	)
