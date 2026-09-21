@@ -177,14 +177,17 @@
 		return
 	cooldown = world.time + 10
 	var/referee_choice = pick("Rock", "Paper", "Scissors")
+	var/player_wins = FALSE
+	if(player_choice == "Rock" && referee_choice == "Scissors")
+		player_wins = TRUE
+	else if(player_choice == "Paper" && referee_choice == "Rock")
+		player_wins = TRUE
+	else if(player_choice == "Scissors" && referee_choice == "Paper")
+		player_wins = TRUE
 	var/result
 	if(player_choice == referee_choice)
 		result = "It's a tie"
-	else if(
-		(player_choice == "Rock" && referee_choice == "Scissors") ||
-		(player_choice == "Paper" && referee_choice == "Rock") ||
-		(player_choice == "Scissors" && referee_choice == "Paper")
-	)
+	else if(player_wins)
 		result = "[user] wins"
 	else
 		result = "[src] wins"
