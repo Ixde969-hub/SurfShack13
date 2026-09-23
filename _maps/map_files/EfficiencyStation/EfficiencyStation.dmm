@@ -2930,22 +2930,19 @@
 	dir = 1;
 	icon_state = "direction_evac";
 	pixel_x = 32;
-	pixel_y = -40;
-	tag = "icon-direction_evac (NORTH)"
+	pixel_y = -40
 	},
 /obj/structure/sign/directions/security{
 	dir = 8;
 	icon_state = "direction_sec";
 	pixel_x = 32;
-	pixel_y = -32;
-	tag = "icon-direction_sec (WEST)"
+	pixel_y = -32
 	},
 /obj/structure/sign/directions/medical{
 	dir = 8;
 	icon_state = "direction_med";
 	pixel_x = 32;
-	pixel_y = -24;
-	tag = "icon-direction_med (WEST)"
+	pixel_y = -24
 	},
 /turf/open/floor/iron,
 /area/station/hallway/primary/central)
@@ -3145,22 +3142,19 @@
 	dir = 8;
 	icon_state = "direction_med";
 	pixel_x = -32;
-	pixel_y = -32;
-	tag = "icon-direction_med (WEST)"
+	pixel_y = -32
 	},
 /obj/structure/sign/directions/security{
 	dir = 8;
 	icon_state = "direction_sec";
 	pixel_x = -32;
-	pixel_y = -24;
-	tag = "icon-direction_sec (WEST)"
+	pixel_y = -24
 	},
 /obj/structure/sign/directions/evac{
 	dir = 1;
 	icon_state = "direction_evac";
 	pixel_x = -32;
-	pixel_y = -40;
-	tag = "icon-direction_evac (NORTH)"
+	pixel_y = -40
 	},
 /turf/open/floor/iron,
 /area/station/hallway/primary/starboard)
@@ -3256,8 +3250,7 @@
 	dir = 1;
 	icon_state = "direction_evac";
 	pixel_x = -32;
-	pixel_y = 24;
-	tag = "icon-direction_evac (NORTH)"
+	pixel_y = 24
 	},
 /obj/structure/sign/directions/science{
 	dir = 4;
@@ -3269,8 +3262,7 @@
 	dir = 4;
 	icon_state = "direction_eng";
 	pixel_x = -32;
-	pixel_y = 40;
-	tag = "icon-direction_eng (EAST)"
+	pixel_y = 40
 	},
 /turf/open/floor/iron,
 /area/station/hallway/primary/central)
@@ -3748,15 +3740,13 @@
 	dir = 4;
 	icon_state = "direction_eng";
 	pixel_x = -32;
-	pixel_y = 0;
-	tag = "icon-direction_eng (EAST)"
+	pixel_y = 0
 	},
 /obj/structure/sign/directions/science{
 	dir = 1;
 	icon_state = "direction_sci";
 	pixel_x = -32;
-	pixel_y = 8;
-	tag = "icon-direction_sci (NORTH)"
+	pixel_y = 8
 	},
 /turf/open/floor/iron,
 /area/station/hallway/primary/starboard)
@@ -5169,15 +5159,13 @@
 /obj/structure/sign/directions/engineering{
 	dir = 1;
 	icon_state = "direction_eng";
-	pixel_x = 32;
-	tag = "icon-direction_eng (NORTH)"
+	pixel_x = 32
 	},
 /obj/structure/sign/directions/science{
 	dir = 1;
 	icon_state = "direction_sci";
 	pixel_x = 32;
-	pixel_y = 8;
-	tag = "icon-direction_sci (NORTH)"
+	pixel_y = 8
 	},
 /turf/open/floor/iron,
 /area/station/hallway/primary/aft)
@@ -8141,15 +8129,13 @@
 	dir = 8;
 	icon_state = "direction_evac";
 	pixel_x = -32;
-	pixel_y = -8;
-	tag = "icon-direction_evac (WEST)"
+	pixel_y = -8
 	},
 /obj/structure/sign/directions/medical{
 	dir = 1;
 	icon_state = "direction_med";
 	pixel_x = -32;
-	pixel_y = 8;
-	tag = "icon-direction_med (NORTH)"
+	pixel_y = 8
 	},
 /obj/structure/sign/directions/security{
 	dir = 1;
