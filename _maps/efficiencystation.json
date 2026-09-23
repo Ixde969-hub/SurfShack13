@@ -1,0 +1,20 @@
+{
+    "version": 1,
+    "map_name": "Efficiency Station",
+    "map_path": "map_files/EfficiencyStation",
+    "map_file": "EfficiencyStation.dmm",
+    "shuttles": {
+        "cargo": "cargo_efficiency",
+        "emergency": "emergency_efficiency",
+        "ferry": "ferry_efficiency",
+        "whiteship": "whiteship_meta"
+    },
+    "job_changes": {
+        "Cook": {
+            "additional_cqc_areas": [
+                "/area/station/service/bar/atrium",
+                "/area/station/commons/lounge"
+            ]
+        }
+    }
+}

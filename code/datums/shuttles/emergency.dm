@@ -500,3 +500,10 @@
 	return SSshuttle.shuttle_purchase_requirements_met[SHUTTLE_UNLOCK_ALIENTECH]
 
 #undef EMAG_LOCKED_SHUTTLE_COST
+
+/datum/map_template/shuttle/emergency/efficiency
+	suffix = "efficiency"
+	name = "Efficiency Station emergency shuttle"
+	credit_cost = CARGO_CRATE_VALUE * 4
+	description = "The restored evacuation shuttle for Efficiency Station."
+	occupancy_limit = "45"
