@@ -24,8 +24,8 @@ jobs:
           path = Path('tgstation.dme')
           data = path.read_bytes()
           newline = b'\r\n' if b'\r\n' in data else b'\n'
-          hypno = b'#include "code\\\\game\\\\objects\\\\items\\\\implants\\\\implant_hypno_tracker.dm"' + newline
-          health = b'#include "code\\\\game\\\\objects\\\\items\\\\implants\\\\implant_health.dm"' + newline
+          hypno = b'#include "code\\game\\objects\\items\\implants\\implant_hypno_tracker.dm"' + newline
+          health = b'#include "code\\game\\objects\\items\\implants\\implant_health.dm"' + newline
 
           if data.count(hypno) != 1:
               raise SystemExit(f'Expected exactly one hypno include, found {data.count(hypno)}')
