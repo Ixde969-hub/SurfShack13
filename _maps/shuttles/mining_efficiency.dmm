@@ -1,0 +1,164 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+"aTb" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall1";
+	dir = 2
+	},
+/area/shuttle/mining)
+"bIg" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall3";
+	dir = 2
+	},
+/area/shuttle/mining)
+"eSB" = (
+/obj/structure/chair{
+	dir = 8
+	},
+/turf/open/floor/mineral/titanium,
+/area/shuttle/mining)
+"fKp" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall12";
+	dir = 2
+	},
+/area/shuttle/mining)
+"ges" = (
+/obj/machinery/power/shuttle_engine/propulsion{
+	icon_state = "propulsion";
+	dir = 8
+	},
+/turf/open/floor/plating/airless,
+/area/shuttle/mining)
+"ieD" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s6";
+	dir = 2
+	},
+/area/shuttle/mining)
+"iCu" = (
+/obj/structure/table,
+/turf/open/floor/mineral/titanium,
+/area/shuttle/mining)
+"kCu" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s10";
+	dir = 2
+	},
+/area/shuttle/mining)
+"lPc" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall2"
+	},
+/area/shuttle/mining)
+"nFd" = (
+/turf/open/floor/mineral/titanium,
+/area/shuttle/mining)
+"nOZ" = (
+/obj/machinery/power/shuttle_engine/heater{
+	icon_state = "heater";
+	dir = 4
+	},
+/obj/structure/window/reinforced/spawner/directional/west,
+/obj/structure/window/reinforced/spawner/directional/south,
+/obj/structure/window/reinforced/spawner/directional/north{
+	pixel_y = 1
+	},
+/turf/open/floor/plating/airless,
+/area/shuttle/mining)
+"pMa" = (
+/obj/machinery/computer/shuttle/mining,
+/turf/open/floor/mineral/titanium,
+/area/shuttle/mining)
+"qhh" = (
+/obj/structure/grille,
+/obj/structure/window/reinforced/shuttle,
+/turf/open/floor/plating,
+/area/shuttle/mining)
+"qWx" = (
+/obj/structure/ore_box,
+/turf/open/floor/mineral/titanium,
+/area/shuttle/mining)
+"rwB" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s9";
+	dir = 2
+	},
+/area/shuttle/mining)
+"rGF" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s5";
+	dir = 2
+	},
+/area/shuttle/mining)
+"sdD" = (
+/obj/docking_port/mobile{
+	dir = 2;
+	name = "mining shuttle";
+	shuttle_id = "mining";
+	preferred_direction = 8;
+	port_direction = 1
+	},
+/obj/machinery/door/airlock/shuttle{
+	name = "Mining Shuttle Airlock";
+	req_access = list("mining")
+	},
+/turf/open/floor/plating,
+/area/shuttle/mining)
+"soy" = (
+/turf/closed/wall/mineral/titanium,
+/area/shuttle/mining)
+"uix" = (
+/obj/structure/closet/crate,
+/turf/open/floor/mineral/titanium,
+/area/shuttle/mining)
+
+(1,1,1) = {"
+ieD
+bIg
+qhh
+bIg
+rGF
+"}
+(2,1,1) = {"
+fKp
+iCu
+pMa
+iCu
+fKp
+"}
+(3,1,1) = {"
+qhh
+nFd
+eSB
+nFd
+qhh
+"}
+(4,1,1) = {"
+sdD
+nFd
+nFd
+nFd
+soy
+"}
+(5,1,1) = {"
+qhh
+eSB
+eSB
+eSB
+qhh
+"}
+(6,1,1) = {"
+fKp
+qWx
+nOZ
+uix
+fKp
+"}
+(7,1,1) = {"
+kCu
+aTb
+ges
+lPc
+rwB
+"}

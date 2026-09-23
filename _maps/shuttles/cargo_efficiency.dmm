@@ -1,0 +1,248 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+"bRr" = (
+/obj/docking_port/mobile/supply{
+	dir = 8;
+	port_direction = 4;
+	shuttle_id = "cargo"
+	},
+/obj/machinery/door/airlock/shuttle{
+	name = "Supply Shuttle Airlock";
+	req_access = list("cargo")
+	},
+/turf/open/floor/plating,
+/area/shuttle/supply)
+"ctI" = (
+/obj/machinery/power/shuttle_engine/propulsion,
+/turf/open/floor/plating/airless,
+/area/shuttle/supply)
+"dBB" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s5";
+	dir = 2
+	},
+/area/shuttle/supply)
+"eug" = (
+/obj/machinery/conveyor{
+	dir = 4;
+	id = "QMLoad2"
+	},
+/obj/machinery/door/poddoor{
+	id = "QMLoaddoor2";
+	name = "Supply Dock Loading Door"
+	},
+/turf/open/floor/plating,
+/area/shuttle/supply)
+"ewC" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s6";
+	dir = 2
+	},
+/area/shuttle/supply)
+"eRu" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall7";
+	dir = 2
+	},
+/area/shuttle/supply)
+"fcx" = (
+/obj/machinery/power/shuttle_engine/propulsion{
+	icon_state = "burst_l"
+	},
+/turf/open/floor/plating/airless,
+/area/shuttle/supply)
+"fqI" = (
+/obj/machinery/conveyor{
+	dir = 4;
+	id = "QMLoad"
+	},
+/obj/machinery/door/poddoor{
+	id = "QMLoaddoor";
+	name = "Supply Dock Loading Door"
+	},
+/turf/open/floor/plating,
+/area/shuttle/supply)
+"fZc" = (
+/obj/machinery/power/shuttle_engine/propulsion{
+	icon_state = "burst_r"
+	},
+/turf/open/floor/plating/airless,
+/area/shuttle/supply)
+"hPl" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_f10"
+	},
+/area/shuttle/supply)
+"hYU" = (
+/turf/open/floor/mineral/titanium,
+/area/shuttle/supply)
+"jaX" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall11";
+	dir = 2
+	},
+/area/shuttle/supply)
+"jxH" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_f6"
+	},
+/area/shuttle/supply)
+"kmD" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall12";
+	dir = 2
+	},
+/area/shuttle/supply)
+"mbe" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s9";
+	dir = 2
+	},
+/area/shuttle/supply)
+"oqr" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall3";
+	dir = 2
+	},
+/area/shuttle/supply)
+"qQB" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall15";
+	dir = 2
+	},
+/area/shuttle/supply)
+"rgw" = (
+/obj/structure/window/reinforced/spawner/directional/north,
+/obj/machinery/power/shuttle_engine/heater,
+/turf/open/floor/plating/airless,
+/area/shuttle/supply)
+"sQk" = (
+/turf/open/space,
+/area/space)
+"uye" = (
+/obj/machinery/door/airlock/shuttle{
+	name = "Supply Shuttle Airlock";
+	req_access = list("cargo")
+	},
+/turf/open/floor/plating,
+/area/shuttle/supply)
+"vAg" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s10";
+	dir = 2
+	},
+/area/shuttle/supply)
+"wHS" = (
+/obj/machinery/button/door{
+	dir = 2;
+	id = "QMLoaddoor2";
+	name = "Loading Doors";
+	pixel_x = 24;
+	pixel_y = 8
+	},
+/obj/machinery/button/door{
+	id = "QMLoaddoor";
+	name = "Loading Doors";
+	pixel_x = 24;
+	pixel_y = -8
+	},
+/turf/open/floor/mineral/titanium,
+/area/shuttle/supply)
+
+(1,1,1) = {"
+ewC
+oqr
+oqr
+oqr
+oqr
+oqr
+oqr
+oqr
+oqr
+eRu
+dBB
+sQk
+"}
+(2,1,1) = {"
+kmD
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hPl
+qQB
+fcx
+"}
+(3,1,1) = {"
+kmD
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+rgw
+ctI
+"}
+(4,1,1) = {"
+kmD
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+rgw
+ctI
+"}
+(5,1,1) = {"
+kmD
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+hYU
+rgw
+ctI
+"}
+(6,1,1) = {"
+kmD
+hYU
+hYU
+hYU
+wHS
+hYU
+hYU
+hYU
+hYU
+jxH
+qQB
+fZc
+"}
+(7,1,1) = {"
+vAg
+eug
+uye
+oqr
+oqr
+oqr
+bRr
+fqI
+oqr
+jaX
+mbe
+sQk
+"}

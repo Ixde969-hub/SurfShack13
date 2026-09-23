@@ -72,3 +72,7 @@
 /datum/map_template/shuttle/mining_common/box
 	suffix = "box"
 	name = "lavaland shuttle (Box)"
+
+/datum/map_template/shuttle/mining/efficiency
+	suffix = "efficiency"
+	name = "Efficiency Station mining shuttle"

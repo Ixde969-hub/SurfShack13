@@ -1,0 +1,95 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+"arq" = (
+/obj/structure/window/reinforced/shuttle,
+/obj/structure/grille,
+/turf/open/floor/plating,
+/area/shuttle/pod_1)
+"avJ" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall3";
+	dir = 2
+	},
+/area/shuttle/pod_1)
+"hex" = (
+/obj/item/radio/intercom{
+	pixel_x = 25
+	},
+/obj/structure/chair,
+/obj/item/storage/pod{
+	pixel_x = -26
+	},
+/turf/open/floor/mineral/titanium,
+/area/shuttle/pod_1)
+"kmD" = (
+/obj/machinery/power/shuttle_engine/propulsion/burst{
+	dir = 1
+	},
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_f10";
+	dir = 2
+	},
+/area/shuttle/pod_1)
+"lWw" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s9";
+	dir = 2
+	},
+/area/shuttle/pod_1)
+"pNq" = (
+/obj/docking_port/mobile/pod{
+	dir = 2;
+	shuttle_id = "pod";
+	preferred_direction = 1;
+	port_direction = 1
+	},
+/obj/machinery/door/airlock/shuttle{
+	name = "Escape Pod Airlock"
+	},
+/turf/open/floor/mineral/titanium,
+/area/shuttle/pod_1)
+"sjB" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s5";
+	dir = 2
+	},
+/area/shuttle/pod_1)
+"tvE" = (
+/obj/machinery/status_display/evac{
+	pixel_x = 32
+	},
+/obj/structure/chair,
+/obj/machinery/computer/shuttle/pod{
+	pixel_x = -32;
+	possible_destinations = "pod_asteroid1";
+	shuttleId = "pod1"
+	},
+/turf/open/floor/mineral/titanium,
+/area/shuttle/pod_1)
+"xFA" = (
+/obj/machinery/power/shuttle_engine/propulsion/burst{
+	dir = 1
+	},
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_f6";
+	dir = 2
+	},
+/area/shuttle/pod_1)
+
+(1,1,1) = {"
+xFA
+avJ
+avJ
+sjB
+"}
+(2,1,1) = {"
+pNq
+hex
+tvE
+arq
+"}
+(3,1,1) = {"
+kmD
+avJ
+avJ
+lWw
+"}

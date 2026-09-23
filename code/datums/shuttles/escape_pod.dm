@@ -21,3 +21,7 @@
 	suffix = "cramped"
 	name = "escape pod (Cramped)"
 	description = "Downgraded escape pod that lacks a window and only has one seat, alongside lacking an emergency safe."
+
+/datum/map_template/shuttle/escape_pod/efficiency
+	suffix = "efficiency"
+	name = "Efficiency Station escape pod shuttle"

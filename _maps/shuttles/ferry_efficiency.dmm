@@ -1,0 +1,171 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+"dZZ" = (
+/obj/structure/chair{
+	dir = 8
+	},
+/turf/open/floor/mineral/titanium,
+/area/shuttle/transport)
+"eES" = (
+/obj/machinery/power/shuttle_engine/propulsion,
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s5";
+	dir = 2
+	},
+/area/shuttle/transport)
+"fDj" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_f6"
+	},
+/area/shuttle/transport)
+"jWc" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s6";
+	dir = 2
+	},
+/area/shuttle/transport)
+"mhc" = (
+/obj/docking_port/mobile{
+	dir = 2;
+	name = "ferry shuttle";
+	shuttle_id = "ferry";
+	preferred_direction = 1;
+	port_direction = 1
+	},
+/obj/machinery/door/airlock/shuttle,
+/turf/open/floor/mineral/titanium,
+/area/shuttle/transport)
+"opB" = (
+/obj/structure/grille,
+/obj/structure/window/reinforced/shuttle,
+/turf/open/floor/plating,
+/area/shuttle/transport)
+"pIG" = (
+/obj/machinery/computer/shuttle/ferry/request,
+/turf/open/floor/mineral/titanium,
+/area/shuttle/transport)
+"qmb" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s10";
+	dir = 2
+	},
+/area/shuttle/transport)
+"rnT" = (
+/obj/structure/window/reinforced/shuttle,
+/obj/structure/grille,
+/turf/open/floor/plating,
+/area/shuttle/transport)
+"snK" = (
+/obj/structure/chair{
+	dir = 4
+	},
+/turf/open/floor/mineral/titanium,
+/area/shuttle/transport)
+"sXk" = (
+/obj/structure/closet/crate,
+/turf/open/floor/mineral/titanium,
+/area/shuttle/transport)
+"tgp" = (
+/turf/open/space,
+/area/space)
+"tuP" = (
+/obj/structure/chair{
+	dir = 1
+	},
+/turf/open/floor/mineral/titanium,
+/area/shuttle/transport)
+"tEr" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall3";
+	dir = 2
+	},
+/area/shuttle/transport)
+"uzu" = (
+/obj/machinery/door/airlock/shuttle,
+/turf/open/floor/mineral/titanium,
+/area/shuttle/transport)
+"vks" = (
+/obj/machinery/power/shuttle_engine/propulsion,
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_s9";
+	dir = 2
+	},
+/area/shuttle/transport)
+"xwZ" = (
+/turf/open/floor/mineral/titanium,
+/area/shuttle/transport)
+"xMQ" = (
+/turf/closed/wall/mineral/titanium{
+	icon_state = "swall_f10"
+	},
+/area/shuttle/transport)
+
+(1,1,1) = {"
+jWc
+tEr
+tEr
+opB
+tEr
+tEr
+tEr
+opB
+tEr
+tEr
+eES
+tgp
+"}
+(2,1,1) = {"
+rnT
+snK
+snK
+snK
+snK
+snK
+snK
+snK
+pIG
+tuP
+xMQ
+eES
+"}
+(3,1,1) = {"
+mhc
+xwZ
+xwZ
+xwZ
+xwZ
+xwZ
+xwZ
+xwZ
+xwZ
+xwZ
+xwZ
+uzu
+"}
+(4,1,1) = {"
+rnT
+dZZ
+dZZ
+dZZ
+dZZ
+dZZ
+dZZ
+dZZ
+sXk
+sXk
+fDj
+vks
+"}
+(5,1,1) = {"
+qmb
+tEr
+tEr
+opB
+tEr
+tEr
+tEr
+opB
+tEr
+tEr
+vks
+tgp
+"}

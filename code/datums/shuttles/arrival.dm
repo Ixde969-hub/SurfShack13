@@ -29,3 +29,7 @@
 /datum/map_template/shuttle/arrival/nebula
 	suffix = "nebula"
 	name = "arrival shuttle (Nebula)"
+
+/datum/map_template/shuttle/arrival/efficiency
+	suffix = "efficiency"
+	name = "Efficiency Station arrival shuttle"
