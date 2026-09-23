@@ -7895,7 +7895,7 @@
 /obj/item/hand_labeler,
 /obj/machinery/light/directional/north,
 /obj/machinery/camera/directional/north{
-	c_tag = "Cargo Recieving Dock North"
+	c_tag = "Cargo Receiving Dock North"
 	},
 /obj/machinery/status_display/shuttle{
 	pixel_y = 32;
@@ -21526,9 +21526,7 @@
 /obj/effect/turf_decal/tile/neutral/half{
 	dir = 2
 	},
-/turf/open/floor/iron{
-	tag = "icon-neutral (SOUTHWEST)"
-	},
+/turf/open/floor/iron,
 /area/station/commons/dorms)
 "llS" = (
 /obj/structure/cable,
@@ -40619,7 +40617,7 @@
 	},
 /obj/machinery/light/directional/south,
 /obj/machinery/camera/directional/south{
-	c_tag = "Cargo Recieving Dock South"
+	c_tag = "Cargo Receiving Dock South"
 	},
 /obj/machinery/atmospherics/pipe/smart/simple/scrubbers/hidden,
 /obj/machinery/status_display/shuttle{
