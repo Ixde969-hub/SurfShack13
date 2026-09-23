@@ -74,7 +74,11 @@
 
 	var/list/current_targets = list()
 	for(var/mob/living/hypnotized_target as anything in GLOB.mob_living_list)
-		if(QDELETED(hypnotized_target) || !hypnotized_target.mind?.has_antag_datum(/datum/antagonist/hypnotized))
+		if(QDELETED(hypnotized_target))
+			continue
+
+		var/datum/antagonist/hypnotized/hypno_datum = hypnotized_target.mind?.has_antag_datum(/datum/antagonist/hypnotized)
+		if(!hypno_datum)
 			continue
 
 		current_targets[hypnotized_target] = TRUE
@@ -82,13 +86,7 @@
 		if(existing_overlay && !QDELETED(existing_overlay))
 			continue
 
-		var/image/hypno_image = image(
-			icon = 'icons/mob/huds/antag_hud.dmi',
-			icon_state = "brainwashed",
-			loc = hypnotized_target,
-		)
-		SET_PLANE_EXPLICIT(hypno_image, ABOVE_GAME_PLANE, hypnotized_target)
-
+		var/image/hypno_image = hypno_datum.hud_image_on(hypnotized_target)
 		var/datum/atom_hud/alternate_appearance/basic/one_person/new_overlay = hypnotized_target.add_alt_appearance(
 			/datum/atom_hud/alternate_appearance/basic/one_person,
 			"[HYPNO_TRACKER_HUD_KEY]_[REF(src)]",
