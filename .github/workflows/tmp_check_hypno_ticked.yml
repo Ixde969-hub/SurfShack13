@@ -1,0 +1,23 @@
+name: Temporary hypno ticked-file check
+
+on:
+  push:
+    branches:
+      - tmp/hypno-ticked-check
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/hypno-telemetry-hud
+      - name: Initialize bootstrap Python
+        run: tools/bootstrap/python -c ''
+      - name: Ticked File Enforcement
+        run: |
+          tools/bootstrap/python tools/ticked_file_enforcement/ticked_file_enforcement.py < tools/ticked_file_enforcement/schemas/tgstation_dme.json
+          tools/bootstrap/python tools/ticked_file_enforcement/ticked_file_enforcement.py < tools/ticked_file_enforcement/schemas/unit_tests.json
