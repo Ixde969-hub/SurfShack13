@@ -1,0 +1,45 @@
+name: Temporary hypno DME include fix
+
+on:
+  push:
+    branches:
+      - tmp/hypno-dme-fix-runner-3
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp/hypno-dme-fix-runner-3
+      - name: Move hypno tracker include into sorted position
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('tgstation.dme')
+          data = path.read_bytes()
+          newline = b'\r\n' if b'\r\n' in data else b'\n'
+          hypno = b'#include "code\\\\game\\\\objects\\\\items\\\\implants\\\\implant_hypno_tracker.dm"' + newline
+          health = b'#include "code\\\\game\\\\objects\\\\items\\\\implants\\\\implant_health.dm"' + newline
+
+          if data.count(hypno) != 1:
+              raise SystemExit(f'Expected exactly one hypno include, found {data.count(hypno)}')
+          if data.count(health) != 1:
+              raise SystemExit(f'Expected exactly one health include, found {data.count(health)}')
+
+          data = data.replace(hypno, b'', 1)
+          data = data.replace(health, health + hypno, 1)
+          path.write_bytes(data)
+          PY
+
+          git rm .github/workflows/tmp_fix_hypno_dme.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tgstation.dme
+          git commit -m "Fix hypno tracker DME include order"
+          git push origin HEAD:tmp/hypno-dme-fix-runner-3
