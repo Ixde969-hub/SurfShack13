@@ -3779,10 +3779,10 @@
 	},
 /area/station/medical/chemistry)
 "bMV" = (
-/obj/machinery/atmospherics/pipe/smart/simple/general/hidden{
+/obj/machinery/atmospherics/pipe/bridge_pipe/general/hidden{
 	dir = 4
 	},
-/obj/machinery/atmospherics/pipe/smart/simple/scrubbers/hidden,
+/obj/machinery/atmospherics/pipe/bridge_pipe/scrubbers/hidden,
 /turf/open/floor/iron{
 	icon_state = "white";
 	base_icon_state = "white"
