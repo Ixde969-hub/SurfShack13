@@ -15,9 +15,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: fix/hypno-telemetry-hud
-      - name: Initialize bootstrap Python
-        run: tools/bootstrap/python -c ''
       - name: Ticked File Enforcement
         run: |
-          tools/bootstrap/python tools/ticked_file_enforcement/ticked_file_enforcement.py < tools/ticked_file_enforcement/schemas/tgstation_dme.json
-          tools/bootstrap/python tools/ticked_file_enforcement/ticked_file_enforcement.py < tools/ticked_file_enforcement/schemas/unit_tests.json
+          python3 tools/ticked_file_enforcement/ticked_file_enforcement.py < tools/ticked_file_enforcement/schemas/tgstation_dme.json
+          python3 tools/ticked_file_enforcement/ticked_file_enforcement.py < tools/ticked_file_enforcement/schemas/unit_tests.json
