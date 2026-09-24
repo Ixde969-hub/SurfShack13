@@ -44,24 +44,34 @@
 /datum/gas_reaction/fusion/proc/gas_power(datum/gas_mixture/air)
 	var/power = 0
 	for(var/gas_id in air.gases)
-		var/weight = air.gases[gas_id][GAS_META][META_GAS_FUSION_POWER]
+		var/list/gas_entry = air.gases[gas_id]
+		if(!gas_entry)
+			continue
+		var/list/gas_meta = gas_entry[GAS_META]
+		var/weight = gas_meta ? gas_meta[META_GAS_FUSION_POWER] : 0
 		switch(gas_id)
 			if(/datum/gas/tritium)
 				weight = 1
 			if(/datum/gas/hydrogen, /datum/gas/hypernoblium)
 				weight = 0
 			// Nitrium superseded stimulum/nitryl; use its current weight of 7.
-		power += weight * air.gases[gas_id][MOLES]
+		power += weight * gas_entry[MOLES]
 	return power
 
 /// Original efficiency/mediation power ratio. Clamp negative modern gas weights to low tier.
 /datum/gas_reaction/fusion/proc/power_ratio(datum/gas_mixture/air, power)
-	var/plasma = air.gases[/datum/gas/plasma][MOLES]
+	var/list/plasma_entry = air.gases[/datum/gas/plasma]
+	if(!plasma_entry)
+		return 0
+	var/plasma = plasma_entry[MOLES]
 	var/total_moles = air.total_moles()
 	var/non_plasma = total_moles - plasma
-	if(non_plasma <= 0)
+	if(non_plasma <= 0 || total_moles <= 0)
 		return 0
-	var/mediation = 80 * (air.heat_capacity() - plasma * air.gases[/datum/gas/plasma][GAS_META][META_GAS_SPECIFIC_HEAT]) / non_plasma
+	var/list/plasma_meta = plasma_entry[GAS_META]
+	if(!plasma_meta)
+		return 0
+	var/mediation = 80 * (air.heat_capacity() - plasma * plasma_meta[META_GAS_SPECIFIC_HEAT]) / non_plasma
 	if(mediation <= 0)
 		return 0
 	var/differential = (plasma - non_plasma) / total_moles
@@ -79,12 +89,21 @@
 
 /datum/gas_reaction/fusion/react(datum/gas_mixture/air, datum/holder)
 	// The reaction scheduler caches temperature before the first reaction. Recheck it here.
-	if(air.volume <= 0 || air.temperature < CLASSIC_FUSION_TEMPERATURE_THRESHOLD)
+	if(!air || air.volume <= 0 || air.temperature < CLASSIC_FUSION_TEMPERATURE_THRESHOLD)
 		return NO_REACTION
 	var/list/cached_gases = air.gases
+	// Reactions can be invoked directly by unit tests or callers outside the scheduler.
+	// Never assume init_reqs() has already guaranteed that these entries exist.
+	var/list/plasma_entry = cached_gases[/datum/gas/plasma]
+	var/list/hydrogen_entry = cached_gases[/datum/gas/hydrogen]
+	var/list/tritium_entry = cached_gases[/datum/gas/tritium]
+	if(!plasma_entry || !hydrogen_entry || !tritium_entry)
+		return NO_REACTION
+	if(plasma_entry[MOLES] < CLASSIC_FUSION_MOLE_THRESHOLD || hydrogen_entry[MOLES] < CLASSIC_FUSION_MOLE_THRESHOLD || tritium_entry[MOLES] < CLASSIC_FUSION_TRITIUM_MOLES_USED)
+		return NO_REACTION
 	var/old_heat_capacity = air.heat_capacity()
-	var/initial_plasma = cached_gases[/datum/gas/plasma][MOLES]
-	var/initial_hydrogen = cached_gases[/datum/gas/hydrogen][MOLES]
+	var/initial_plasma = plasma_entry[MOLES]
+	var/initial_hydrogen = hydrogen_entry[MOLES]
 	var/scale_factor = air.volume / PI
 	var/toroidal_size = 2 * PI
 	var/power = gas_power(air)
@@ -107,9 +126,9 @@
 	if(air.thermal_energy() + reaction_energy < 0)
 		return NO_REACTION
 
-	cached_gases[/datum/gas/plasma][MOLES] = new_plasma
-	cached_gases[/datum/gas/hydrogen][MOLES] = new_hydrogen
-	cached_gases[/datum/gas/tritium][MOLES] -= CLASSIC_FUSION_TRITIUM_MOLES_USED
+	plasma_entry[MOLES] = new_plasma
+	hydrogen_entry[MOLES] = new_hydrogen
+	tritium_entry[MOLES] -= CLASSIC_FUSION_TRITIUM_MOLES_USED
 	// The older reaction consumed ALL gas at once. Apply its product fractions to
 	// the final reaction's waste budget instead, retaining sustained fusion.
 	var/waste = CLASSIC_FUSION_TRITIUM_MOLES_USED * abs(reaction_energy) * 1e-10
@@ -121,6 +140,7 @@
 
 	LAZYINITLIST(air.analyzer_results)
 	air.analyzer_results[id] = list("power" = tier_power, "tier" = tier, "instability" = instability, "energy" = reaction_energy)
+	LAZYINITLIST(air.reaction_results)
 	air.reaction_results[type] = CLASSIC_FUSION_TRITIUM_MOLES_USED
 	var/turf/location = reaction_turf(holder)
 	if(location && reaction_energy)
