@@ -1,0 +1,132 @@
+name: TEMP apply reported Stand and cloning fixes
+
+on:
+  push:
+    branches:
+      - test/cloning-emotes-stands
+    paths:
+      - .github/workflows/temp-fix-reported-test-bugs.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: test/cloning-emotes-stands
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fix Stand Arrow feedback
+        shell: bash
+        run: |
+          git checkout port-hippie-stands
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('code/modules/mob/living/basic/guardian/stands/stand_arrow.dme')
+          s = p.read_text()
+          old = '''\tif(prob(kill_chance))
+\t\tlog_game("[key_name(target)] was killed by a Stand Arrow.")
+\t\tmessage_admins("[ADMIN_LOOKUPFLW(target)] failed a Stand Arrow awakening and was dusted.")
+\t\treset_arrow()
+\t\ttarget.visible_message(span_bolddanger("[target] collapses into ash!"))
+\t\ttarget.dust(drop_items = TRUE)
+\t\treturn
+\tvar/list/weighted_powers = list()
+'''
+          new = '''\tif(prob(kill_chance))
+\t\tlog_game("[key_name(target)] was killed by a Stand Arrow.")
+\t\tmessage_admins("[ADMIN_LOOKUPFLW(target)] failed a Stand Arrow awakening and was dusted.")
+\t\treset_arrow()
+\t\ttarget.visible_message(
+\t\t\tspan_bolddanger("[target] stares ahead, eyes wide with fear, as the Arrow rejects them. Their body was not strong enough to withstand its power!"),
+\t\t\tspan_bolddanger("The Arrow rejects you. You were not strong enough to withstand its power."),
+\t\t)
+\t\ttarget.dust(drop_items = TRUE)
+\t\treturn
+\ttarget.visible_message(
+\t\tspan_holoparasite("The Arrow's glow intensifies around [target]. Something unseen begins to take shape..."),
+\t\tspan_holoparasite("The Arrow accepts you. Something powerful begins to awaken within your soul..."),
+\t)
+\tvar/list/weighted_powers = list()
+'''
+          if old not in s:
+              raise SystemExit('Stand failure block not found')
+          s = s.replace(old, new, 1)
+          old2 = '''\t// The arrow, victim and ghost can all disappear while polling yields.
+\tif(QDELETED(src))
+\t\treturn
+\tif(!used || target_ref?.resolve() != target || !valid_target(target) || loc != target || QDELETED(candidate) || !candidate.client)
+\t\treset_arrow()
+\t\treturn
+'''
+          new2 = '''\t// The arrow, victim and ghost can all disappear while polling yields.
+\tif(QDELETED(src))
+\t\treturn
+\tif(!used || target_ref?.resolve() != target || !valid_target(target) || loc != target)
+\t\treset_arrow()
+\t\treturn
+\tif(QDELETED(candidate) || !candidate.client)
+\t\ttarget.visible_message(
+\t\t\tspan_holoparasite("The strange presence around [target] fades before it can fully manifest, and the Arrow falls free."),
+\t\t\tspan_holoparasite("You were worthy, but no spirit answered the call to become your Stand. The Arrow falls free."),
+\t\t)
+\t\tif(target.client?.holder)
+\t\t\tto_chat(target, span_notice("Stand Arrow testing note: a separate ghost player must volunteer to control the Stand."))
+\t\treset_arrow()
+\t\treturn
+'''
+          if old2 not in s:
+              raise SystemExit('Stand candidate validation block not found')
+          p.write_text(s.replace(old2, new2, 1))
+          PY
+          git add code/modules/mob/living/basic/guardian/stands/stand_arrow.dme
+          git commit -m "Improve Stand Arrow worthiness feedback"
+          git push origin port-hippie-stands
+
+      - name: Fix cloning completion chirp
+        shell: bash
+        run: |
+          git checkout agent/split-373-cloning
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('code/game/machinery/dna_scanner.dm')
+          s = p.read_text()
+          old = '''\tif(successful)
+\t\tto_chat(leaving_clone, span_notice("The pod opens. Your new body has finished maturing."))
+\t\tleaving_clone.flash_act()
+\t\tplaysound(src, 'sound/machines/cloning_complete.ogg', 50, TRUE, 10 - SOUND_RANGE)
+\t\tsay("Cloning process complete. [leaving_clone.real_name] has been cloned.")
+'''
+          new = '''\tif(successful)
+\t\tvar/turf/pod_turf = get_turf(src)
+\t\tif(pod_turf)
+\t\t\tplaysound(pod_turf, 'sound/machines/cloning_complete.ogg', 50, FALSE, 10 - SOUND_RANGE)
+\t\tto_chat(leaving_clone, span_notice("The pod opens. Your new body has finished maturing."))
+\t\tleaving_clone.flash_act()
+\t\tsay("Cloning process complete. [leaving_clone.real_name] has been cloned.")
+'''
+          if old not in s:
+              raise SystemExit('Cloning completion sound block not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+          git add code/game/machinery/dna_scanner.dm
+          git commit -m "Play cloning completion chirp from the pod"
+          git push origin agent/split-373-cloning
+
+      - name: Refresh combined test branch and remove temporary workflow
+        shell: bash
+        run: |
+          git checkout test/cloning-emotes-stands
+          git merge --no-edit port-hippie-stands
+          git merge --no-edit agent/split-373-cloning
+          git rm .github/workflows/temp-fix-reported-test-bugs.yml
+          git commit -m "Refresh test stack with Stand and cloning fixes"
+          git push origin test/cloning-emotes-stands
