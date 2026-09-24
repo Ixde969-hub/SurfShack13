@@ -1,0 +1,25 @@
+name: TEMP clone chirp patch
+on:
+  push:
+    branches: [test/cloning-emotes-stands]
+    paths: [.github/workflows/temp-clone-chirp.yml]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: test/cloning-emotes-stands
+          fetch-depth: 0
+      - run: git config user.name github-actions[bot]
+      - run: git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+      - name: Patch combined test branch
+        run: |
+          python3 -c "from pathlib import Path; p=Path('code/game/machinery/dna_scanner.dm'); s=p.read_text(); old='\\tif(successful)\\n\\t\\tto_chat(leaving_clone, span_notice(\"The pod opens. Your new body has finished maturing.\"))\\n\\t\\tleaving_clone.flash_act()\\n\\t\\tplaysound(src, \'sound/machines/cloning_complete.ogg\', 50, TRUE, 10 - SOUND_RANGE)\\n'; new='\\tvar/turf/pod_turf = get_turf(src)\\n\\tif(pod_turf)\\n\\t\\tplaysound(pod_turf, \'sound/machines/cloning_complete.ogg\', 50, FALSE, 10 - SOUND_RANGE)\\n\\n\\tif(successful)\\n\\t\\tto_chat(leaving_clone, span_notice(\"The pod opens. Your new body has finished maturing.\"))\\n\\t\\tleaving_clone.flash_act()\\n'; assert old in s, 'target block missing'; p.write_text(s.replace(old,new,1))"
+          git add code/game/machinery/dna_scanner.dm
+          git commit -m "Play cloning chirp on every pod ejection"
+          git rm .github/workflows/temp-clone-chirp.yml .github/workflows/temp-fix-reported-test-bugs.yml
+          git commit -m "Remove temporary patch workflows"
+          git push origin test/cloning-emotes-stands
