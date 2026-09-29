@@ -11,3 +11,19 @@
 	cost = 1
 	surplus = 30
 	purchasable_from = ~UPLINK_INFILTRATORS
+
+/obj/item/chainsaw/energy
+	name = "energy chainsaw"
+	desc = "An incredibly deadly modified chainsaw using plasma-based energy cutters in place of an ordinary chain. Heavy, loud, and exceptionally destructive."
+	force_on = 60
+	armour_penetration = 15
+	block_chance = 50
+
+/datum/uplink_item/dangerous/energy_chainsaw
+	name = "Energy Chainsaw"
+	desc = "An incredibly deadly modified chainsaw with plasma-based energy cutters. It tears through matter with extreme efficiency, but remains heavy, large, and monstrously loud."
+	item = /obj/item/chainsaw/energy
+	cost = 14
+	purchasable_from = UPLINK_TRAITORS
+
+#include "energy_chainsaw_assets.dm"
