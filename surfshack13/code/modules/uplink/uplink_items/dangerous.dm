@@ -11,3 +11,13 @@
 	cost = 1
 	surplus = 30
 	purchasable_from = ~UPLINK_INFILTRATORS
+
+/datum/uplink_item/dangerous/high_frequency_blade
+	name = "High Frequency Blade"
+	desc = "An electric katana that weakens the molecular bonds of whatever it touches. Perfect for slicing off the limbs of your coworkers. Avoid using a multitool on it."
+	item = /obj/item/storage/belt/hfblade/hippie
+	cost = 9
+	surplus = 15
+	purchasable_from = UPLINK_TRAITORS
+
+#include "high_frequency_blade_assets.dm"
