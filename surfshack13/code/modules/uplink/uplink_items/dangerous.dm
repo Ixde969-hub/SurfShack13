@@ -11,3 +11,35 @@
 	cost = 1
 	surplus = 30
 	purchasable_from = ~UPLINK_INFILTRATORS
+
+/obj/item/extra_arm
+	name = "extra arm installer"
+	desc = "A Syndicate surgical device that adapts the user's nervous system to support an additional arm."
+	icon = 'surfshack13/icons/hippie/device.dmi'
+	icon_state = "extra_arm"
+	w_class = WEIGHT_CLASS_SMALL
+	var/used = FALSE
+
+/obj/item/extra_arm/attack_self(mob/living/carbon/user)
+	if(used)
+		balloon_alert(user, "already used!")
+		return
+
+	user.change_number_of_hands(length(user.held_items) + 1)
+	used = TRUE
+	icon_state = "extra_arm_none"
+	desc += " It has already been used."
+	user.visible_message(
+		span_notice("[user] presses a button on [src], followed by a disgusting wet noise."),
+		span_notice("You feel a sharp sting as [src] implants an additional arm into your body."),
+	)
+	to_chat(user, span_notice("You feel more dexterous."))
+	playsound(user, 'sound/misc/splort.ogg', 50, vary = TRUE)
+
+/datum/uplink_item/device_tools/additional_arm
+	name = "Additional Arm"
+	desc = "An additional arm prepared for rapid implantation with a Syndicate surgical installer."
+	item = /obj/item/extra_arm
+	cost = 4
+	limited_stock = 2
+	purchasable_from = UPLINK_TRAITORS
