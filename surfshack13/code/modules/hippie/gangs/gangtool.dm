@@ -168,7 +168,7 @@
 
 /// Sends a gang-wide message
 /obj/item/gangtool/proc/ping_gang(mob/user)
-	var/message = tgui_input_text(user, "Discreetly send a gang-wide message.", "Send Message")
+	var/message = tgui_input_text(user, "Discreetly send a gang-wide message.", "Send Message", max_length = MAX_MESSAGE_LEN)
 	if(!message || !can_use(user))
 		return
 	if(!is_station_level(user.z))

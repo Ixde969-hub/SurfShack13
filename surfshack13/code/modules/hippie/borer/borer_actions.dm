@@ -113,7 +113,7 @@
 	var/mob/living/basic/cortical_borer/borer = get_borer()
 	if(!borer?.can_use_ability(needs_awake = FALSE))
 		return FALSE
-	var/message = tgui_input_text(borer, "Please enter a message to tell your host.", "Borer")
+	var/message = tgui_input_text(borer, "Please enter a message to tell your host.", "Borer", max_length = MAX_MESSAGE_LEN)
 	if(message)
 		borer.talk_to_host(message)
 	return TRUE
@@ -242,7 +242,7 @@
 	var/mob/living/basic/cortical_borer/borer = get_borer()
 	if(!borer?.host)
 		return FALSE
-	var/message = tgui_input_text(owner, "Please enter a message to tell the borer.", "Message")
+	var/message = tgui_input_text(owner, "Please enter a message to tell the borer.", "Message", max_length = MAX_MESSAGE_LEN)
 	if(!message || QDELETED(borer) || borer.host != owner)
 		return FALSE
 	log_directed_talk(owner, borer, message, LOG_SAY, "host to borer")
@@ -274,7 +274,7 @@
 	var/mob/living/basic/cortical_borer/borer = get_borer()
 	if(!borer?.host_brain)
 		return FALSE
-	var/message = tgui_input_text(owner, "Please enter a message to tell the trapped mind.", "Message")
+	var/message = tgui_input_text(owner, "Please enter a message to tell the trapped mind.", "Message", max_length = MAX_MESSAGE_LEN)
 	if(!message || QDELETED(borer) || !borer.host_brain)
 		return FALSE
 	log_directed_talk(owner, borer.host_brain, message, LOG_SAY, "borer to trapped mind")
