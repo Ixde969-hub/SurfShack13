@@ -19,8 +19,8 @@
 	required_candidates = 2
 	weight = 3
 	cost = 20
-	// population brackets are 6 players wide: 10-11 players need threat 40, big rounds need 10
-	requirements = list(101, 40, 35, 30, 25, 20, 15, 10, 10, 10)
+	// population brackets are 6 players wide: rare at low pop like cult and nukies (70 threat at 10-17 players), common at high pop
+	requirements = list(101, 70, 70, 60, 40, 30, 20, 10, 10, 10)
 	// 2 gangs, plus one more per 25 players, up to Hippie's usual 4
 	antag_cap = list("denominator" = 25, "offset" = 1)
 	flags = HIGH_IMPACT_RULESET
