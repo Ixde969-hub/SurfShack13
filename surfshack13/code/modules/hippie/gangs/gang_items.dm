@@ -127,6 +127,7 @@
 /obj/item/clothing/shoes/gang
 	name = "blinged-out boots"
 	desc = "Stand aside peasants."
+	icon = 'surfshack13/icons/hippie/gang_clothing.dmi'
 	icon_state = "bling"
 
 /datum/gang_item/clothing/neck

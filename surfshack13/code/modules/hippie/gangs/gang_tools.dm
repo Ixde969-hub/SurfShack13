@@ -131,6 +131,7 @@
 	name = "gang tag"
 	desc = "Looks like someone's claimed this area for their gang."
 	icon = 'surfshack13/icons/hippie/gang_tags.dmi'
+	icon_state = "Clandestine"
 	layer = ABOVE_NORMAL_TURF_LAYER
 	do_icon_rotate = FALSE
 	/// The gang this tag claims territory for

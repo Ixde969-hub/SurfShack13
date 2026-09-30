@@ -101,6 +101,7 @@
 
 /obj/effect/temp_visual/bfs
 	icon = 'surfshack13/icons/hippie/interdimensional_sword.dmi'
+	icon_state = "blade"
 	randomdir = FALSE
 	duration = 1
 	density = TRUE // it's a bigass sword
