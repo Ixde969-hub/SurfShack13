@@ -205,22 +205,9 @@
 
 /datum/action/cooldown/borer/secrete_chemicals/Activate(atom/unused)
 	var/mob/living/basic/cortical_borer/borer = get_borer()
-	if(!borer?.can_use_ability())
+	if(!borer?.can_use_ability(needs_awake = FALSE))
 		return FALSE
-	var/list/options = list()
-	for(var/chem_type in subtypesof(/datum/borer_chem))
-		var/datum/borer_chem/chem = GLOB.borer_chems[chem_type]
-		options["[chem.name] ([chem.chemuse]) - [chem.chem_desc]"] = chem
-	var/choice = tgui_input_list(borer, "You have [borer.chemicals] chemicals.", "Secrete Chemicals", options)
-	if(!choice)
-		return FALSE
-	var/datum/borer_chem/chem = options[choice]
-	if(!borer.can_use_ability(chem_cost = chem.chemuse))
-		return FALSE
-	borer.host.reagents.add_reagent(chem.reagent_type, chem.quantity)
-	borer.chemicals -= chem.chemuse
-	to_chat(borer, span_userdanger("You squirt a measure of [chem.name] from your reservoirs into [borer.host]'s bloodstream."))
-	log_combat(borer, borer.host, "injected [chem.name] into")
+	borer.ui_interact(borer)
 	return TRUE
 
 /datum/action/cooldown/borer/jumpstart

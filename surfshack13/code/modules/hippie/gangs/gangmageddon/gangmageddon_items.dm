@@ -58,7 +58,7 @@
 	mode_flags = GANG_MODE_GANGMAGEDDON
 
 /datum/gang_item/function
-	category = "Gangtool Functions:"
+	category = "Functions"
 
 /datum/gang_item/function/backup
 	name = "Create Gateway for Reinforcements"

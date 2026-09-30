@@ -25,6 +25,8 @@
 	var/list/buyable_items = list()
 	/// Which shop items this tool sells (GANG_MODE_* flag)
 	var/mode_flag = GANG_MODE_GANGS
+	/// What the shop's currency is called
+	var/currency_name = "Influence"
 
 /obj/item/gangtool/Initialize(mapload)
 	. = ..()
@@ -61,83 +63,97 @@
 	show_menu(user)
 	return TRUE
 
+/// Opens the gangtool window
 /obj/item/gangtool/proc/show_menu(mob/user)
-	var/datum/antagonist/gang/boss/leader = user.mind.has_antag_datum(/datum/antagonist/gang/boss)
-	var/list/dat = list()
-	if(!gang)
-		dat += "This device is not registered.<br><br>"
-		if(leader)
-			if(promotable && length(leader.gang.leaders) < leader.gang.max_leaders)
-				dat += "Give this device to another member of your organization to use to promote them to Lieutenant.<br><br>"
-				dat += "If this is meant as a spare device for yourself:<br>"
-			dat += "<a href='byond://?src=[REF(src)];register=1'>Register Device as Spare</a><br>"
-		else if(promotable)
-			var/datum/antagonist/gang/member = user.mind.has_antag_datum(/datum/antagonist/gang)
-			if(length(member.gang.leaders) < member.gang.max_leaders)
-				dat += "You have been selected for a promotion!<br>"
-				dat += "<a href='byond://?src=[REF(src)];register=1'>Accept Promotion</a><br>"
-			else
-				dat += "No promotions available: All positions filled.<br>"
-		else
-			dat += "This device is not authorized to promote.<br>"
-	else
-		if(gang.domination_time != GANG_NOT_DOMINATING)
-			dat += "<center><font color='red'>Takeover In Progress:<br><b>[DisplayTimeText(gang.domination_time_remaining() SECONDS)] remain</b></font></center>"
-		dat += "Registration: <b>[gang.name] Gang Boss</b><br>"
-		dat += "Organization Size: <b>[length(gang.members)]</b> | Station Control: <b>[length(gang.territories)] territories under control.</b> | Influence: <b>[get_points()]</b><br>"
-		dat += "Time until Influence grows: <b>[time2text(max(0, gang.next_point_time - world.time), "mm:ss", 0)]</b><br>"
-		dat += "<a href='byond://?src=[REF(src)];commute=1'>Send message to Gang</a><br>"
-		dat += "<a href='byond://?src=[REF(src)];recall=1'>Recall shuttle</a><br>"
-		dat += "<hr>"
-		dat += shop_html(user)
-	dat += "<a href='byond://?src=[REF(src)];refresh=1'>Refresh</a><br>"
-	var/datum/browser/popup = new(user, "gangtool", "Welcome to GangTool v4.0", 340, 625)
-	popup.set_content(dat.Join())
-	popup.open()
+	ui_interact(user)
+
+// Gangtools can live in pockets, bags or nullspace (personal tools), so access is decided by can_use()
+/obj/item/gangtool/ui_state(mob/user)
+	return GLOB.always_state
+
+/obj/item/gangtool/ui_status(mob/user, datum/ui_state/state)
+	return can_use(user, silent = TRUE) ? UI_INTERACTIVE : UI_CLOSE
+
+/obj/item/gangtool/ui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
+	if(!ui)
+		ui = new(user, src, "Gangtool")
+		ui.open()
+
+/obj/item/gangtool/ui_data(mob/user)
+	var/list/data = list()
+	var/datum/antagonist/gang/member = user.mind?.has_antag_datum(/datum/antagonist/gang)
+	data["vigilante"] = FALSE
+	data["title"] = "GangTool v4.0"
+	data["registered"] = !!gang
+	data["is_leader"] = istype(member, /datum/antagonist/gang/boss)
+	data["promotable"] = promotable
+	data["positions_open"] = member ? length(member.gang.leaders) < member.gang.max_leaders : FALSE
+	data["points"] = get_points()
+	data["currency"] = currency_name
+	if(gang)
+		data["gang_name"] = gang.name
+		data["gang_color"] = gang.color
+		data["members"] = length(gang.members)
+		data["territories"] = length(gang.territories)
+		data["control"] = gang.station_control_percent()
+		data["next_payout"] = max(0, round((gang.next_point_time - world.time) / 10))
+		data["dominating"] = gang.domination_time != GANG_NOT_DOMINATING
+		data["dom_time_left"] = max(0, gang.domination_time_remaining())
+		data["dom_attempts"] = gang.dom_attempts
+		data["recalls"] = gang.recalls
+	data["categories"] = shop_data(user)
+	return data
 
 /// The shop listing, shared by every gangtool type
-/obj/item/gangtool/proc/shop_html(mob/user)
-	var/list/dat = list()
+/obj/item/gangtool/proc/shop_data(mob/user)
+	var/list/categories = list()
 	for(var/category in buyable_items)
-		dat += "<b>[category]</b><br>"
+		var/list/items = list()
 		for(var/id in buyable_items[category])
 			var/datum/gang_item/item = buyable_items[category][id]
 			if(!item.can_see(user, gang, src))
 				continue
-			var/cost = item.get_cost_display(user, gang, src)
-			if(cost)
-				dat += "[cost] "
-			var/item_name = item.get_name_display(user, gang, src)
-			if(item.can_buy(user, gang, src))
-				item_name = "<a href='byond://?src=[REF(src)];purchase=1;id=[id];cat=[url_encode(category)]'>[item_name]</a>"
-			dat += item_name
-			var/extra = item.get_extra_info(user, gang, src)
-			if(extra)
-				dat += "<br><i>[extra]</i>"
-			dat += "<br>"
-		dat += "<br>"
-	return dat.Join()
+			var/atom/shown = item.get_icon_type(gang)
+			items += list(list(
+				"id" = id,
+				"name" = item.get_name_display(user, gang, src),
+				"cost" = item.get_cost_display(user, gang, src),
+				"desc" = item.get_description(user, gang, src),
+				"icon" = shown ? initial(shown.icon) : null,
+				"icon_state" = shown ? initial(shown.icon_state) : null,
+				"can_buy" = item.can_buy(user, gang, src),
+			))
+		if(length(items))
+			categories += list(list("name" = category, "items" = items))
+	return categories
 
-/obj/item/gangtool/Topic(href, href_list)
+/obj/item/gangtool/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	. = ..()
+	if(.)
+		return
 	var/mob/user = usr
 	if(!can_use(user))
 		return
 	add_fingerprint(user)
-	if(href_list["register"])
-		register_device(user)
-	else if(!gang)
-		return
-	if(href_list["purchase"])
-		var/list/category = buyable_items[url_decode(href_list["cat"])]
-		var/datum/gang_item/item = category?[href_list["id"]]
-		if(item?.can_buy(user, gang, src))
-			item.purchase(user, gang, src)
-	if(href_list["commute"])
-		ping_gang(user)
-	if(href_list["recall"])
-		recall(user)
-	show_menu(user)
+	switch(action)
+		if("buy")
+			var/list/category = buyable_items[params["category"]]
+			var/datum/gang_item/item = category?[params["id"]]
+			if(gang && item?.can_buy(user, gang, src))
+				INVOKE_ASYNC(item, TYPE_PROC_REF(/datum/gang_item, purchase), user, gang, src)
+			return TRUE
+		if("register")
+			register_device(user)
+			return TRUE
+		if("message")
+			if(gang)
+				INVOKE_ASYNC(src, PROC_REF(ping_gang), user)
+			return TRUE
+		if("recall")
+			if(gang)
+				recall(user)
+			return TRUE
 
 /// Currency available to spend in this tool's shop
 /obj/item/gangtool/proc/get_points()
@@ -239,15 +255,18 @@
 		return FALSE
 	return TRUE
 
-/obj/item/gangtool/proc/can_use(mob/living/carbon/human/user)
+/// Whether this user can operate the tool. silent skips the chat feedback (used when the window polls it).
+/obj/item/gangtool/proc/can_use(mob/living/carbon/human/user, silent = FALSE)
 	if(!istype(user) || user.incapacitated || !user.mind || !(src in user.get_all_contents()))
 		return FALSE
 	var/datum/antagonist/gang/member = user.mind.has_antag_datum(/datum/antagonist/gang)
 	if(!member)
-		to_chat(user, span_notice("Huh, what's this?"))
+		if(!silent)
+			to_chat(user, span_notice("Huh, what's this?"))
 		return FALSE
 	if(gang && member.gang != gang)
-		to_chat(user, span_danger("You cannot use gang tools owned by enemy gangs!"))
+		if(!silent)
+			to_chat(user, span_danger("You cannot use gang tools owned by enemy gangs!"))
 		return FALSE
 	return TRUE
 

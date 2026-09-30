@@ -46,8 +46,9 @@
 /datum/gang_item/proc/get_cost(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
 	return cost
 
+/// Cost as shown on the buy button
 /datum/gang_item/proc/get_cost_display(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
-	return "([get_cost(user, gang, gangtool)] Influence)"
+	return "[get_cost(user, gang, gangtool)] [gangtool.currency_name]"
 
 /datum/gang_item/proc/get_name_display(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
 	return name
@@ -55,10 +56,22 @@
 /datum/gang_item/proc/get_extra_info(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
 	return
 
+/// Shown under the item in the shop: extra info if there is any, otherwise the item's own description
+/datum/gang_item/proc/get_description(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
+	var/extra = get_extra_info(user, gang, gangtool)
+	if(extra)
+		return extra
+	var/atom/shown = get_icon_type(gang)
+	return shown ? initial(shown.desc) : ""
+
+/// The type whose icon the shop shows for this entry
+/datum/gang_item/proc/get_icon_type(datum/team/gang/gang)
+	return item_path
+
 // ---- Clothing ----
 
 /datum/gang_item/clothing
-	category = "Purchase Gang Clothes (Only the jumpsuit and suit give you added influence):"
+	category = "Clothing"
 
 /datum/gang_item/clothing/under
 	name = "Gang Uniform"
@@ -72,6 +85,12 @@
 	user.put_in_hands(new outfit_type(user.drop_location()))
 	to_chat(user, span_notice("This is your gang's official uniform, wearing it will increase your influence."))
 	return TRUE
+
+/datum/gang_item/clothing/under/get_extra_info(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
+	return "Your gang's official uniform. Wearing it on station increases your gang's influence."
+
+/datum/gang_item/clothing/under/get_icon_type(datum/team/gang/gang)
+	return length(gang?.inner_outfits) ? gang.inner_outfits[1] : null
 
 /datum/gang_item/clothing/suit
 	name = "Gang Armored Outerwear"
@@ -88,6 +107,12 @@
 	user.put_in_hands(outerwear)
 	to_chat(user, span_notice("This is your gang's official outerwear, wearing it will increase your influence."))
 	return TRUE
+
+/datum/gang_item/clothing/suit/get_extra_info(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
+	return "Your gang's official outerwear, armored against bullets and blunt trauma. Wearing it on station increases your gang's influence."
+
+/datum/gang_item/clothing/suit/get_icon_type(datum/team/gang/gang)
+	return length(gang?.outer_outfits) ? gang.outer_outfits[1] : null
 
 /datum/armor/gang_outerwear
 	melee = 20
@@ -165,7 +190,7 @@
 // ---- Weapons ----
 
 /datum/gang_item/weapon
-	category = "Purchase Weapons:"
+	category = "Weapons"
 
 /datum/gang_item/weapon/shuriken
 	name = "Shuriken"
@@ -255,7 +280,7 @@
 // ---- Equipment ----
 
 /datum/gang_item/equipment
-	category = "Purchase Equipment:"
+	category = "Equipment"
 
 /datum/gang_item/equipment/medpatch
 	name = "Healing Patch"
@@ -273,6 +298,9 @@
 	name = "Territory Spraycan"
 	id = "spraycan"
 	cost = 5
+
+/datum/gang_item/equipment/spraycan/get_icon_type(datum/team/gang/gang)
+	return /obj/item/toy/crayon/spraycan
 
 /datum/gang_item/equipment/spraycan/spawn_item(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
 	user.put_in_hands(new /obj/item/toy/crayon/spraycan/gang(user.drop_location(), gang))
@@ -315,6 +343,9 @@
 	id = "implant_breaker"
 	cost = 10
 	spawn_msg = span_notice("The <b>implant breaker</b> is a single-use device that destroys all implants within the target before trying to recruit them to your gang. Also works on enemy gangsters.")
+
+/datum/gang_item/equipment/implant_breaker/get_icon_type(datum/team/gang/gang)
+	return /obj/item/implanter
 
 /datum/gang_item/equipment/implant_breaker/spawn_item(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
 	user.put_in_hands(new /obj/item/implanter/gang(user.drop_location(), gang))
@@ -366,13 +397,16 @@
 	return gangtool?.free_pen ? 0 : ..()
 
 /datum/gang_item/equipment/pen/get_cost_display(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
-	return gangtool?.free_pen ? "(GET ONE FREE)" : ..()
+	return gangtool?.free_pen ? "FREE" : ..()
 
 /datum/gang_item/equipment/gangtool
 	name = "Spare Gangtool"
 	id = "gangtool"
 	mode_flags = GANG_MODE_GANGS
 	cost = 10
+
+/datum/gang_item/equipment/gangtool/get_icon_type(datum/team/gang/gang)
+	return /obj/item/gangtool/spare
 
 /datum/gang_item/equipment/gangtool/spawn_item(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
 	var/tool_type = /obj/item/gangtool/spare
@@ -400,11 +434,9 @@
 /datum/gang_item/equipment/dominator/can_buy(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
 	return gang?.dom_attempts && ..()
 
-/datum/gang_item/equipment/dominator/get_name_display(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
-	return gang?.dom_attempts ? "<b>[..()]</b>" : ..()
 
 /datum/gang_item/equipment/dominator/get_cost_display(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
-	return gang?.dom_attempts ? ..() : "(Out of stock)"
+	return gang?.dom_attempts ? ..() : "Out of stock"
 
 /datum/gang_item/equipment/dominator/get_extra_info(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
 	if(gang)

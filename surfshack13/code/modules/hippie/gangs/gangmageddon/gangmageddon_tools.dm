@@ -53,27 +53,16 @@ GLOBAL_VAR_INIT(gangmageddon_active, FALSE)
 /obj/item/gangtool/personal/get_holder()
 	return bound_mind?.current
 
-/obj/item/gangtool/personal/can_use(mob/living/carbon/human/user)
+/obj/item/gangtool/personal/can_use(mob/living/carbon/human/user, silent = FALSE)
 	if(!istype(user) || user.incapacitated || user.mind != bound_mind)
 		return FALSE
 	var/datum/antagonist/gang/member = user.mind.has_antag_datum(/datum/antagonist/gang)
 	return member && member.gang == gang
 
-/obj/item/gangtool/personal/show_menu(mob/user)
-	if(user.mind.has_antag_datum(/datum/antagonist/gang/boss))
-		return ..()
-	var/list/dat = list()
-	if(gang.domination_time != GANG_NOT_DOMINATING)
-		dat += "<center><font color='red'>Takeover In Progress:<br><b>[DisplayTimeText(gang.domination_time_remaining() SECONDS)] remain</b></font></center>"
-	dat += "Registration: <b>[gang.name] Gangster</b><br>"
-	dat += "Organization Size: <b>[length(gang.members)]</b> | Station Control: <b>[length(gang.territories)] territories under control.</b> | Influence: <b>[points]</b><br>"
-	dat += "<a href='byond://?src=[REF(src)];commute=1'>Send message to Gang</a><br>"
-	dat += "<hr>"
-	dat += shop_html(user)
-	dat += "<a href='byond://?src=[REF(src)];refresh=1'>Refresh</a><br>"
-	var/datum/browser/popup = new(user, "gangtool", "Welcome to GangTool v4.0", 340, 625)
-	popup.set_content(dat.Join())
-	popup.open()
+/obj/item/gangtool/personal/ui_data(mob/user)
+	var/list/data = ..()
+	data["personal"] = TRUE
+	return data
 
 /// Pays out Gangmageddon territory income. Called from the gang's status report.
 /obj/item/gangtool/personal/proc/pay_income()
@@ -184,7 +173,7 @@ GLOBAL_VAR_INIT(gangmageddon_active, FALSE)
 		return
 	addtimer(CALLBACK(src, PROC_REF(earnings)), 2.5 MINUTES, TIMER_LOOP | TIMER_DELETE_ME)
 
-/obj/item/gangtool/personal/vigilante/can_use(mob/living/carbon/human/user)
+/obj/item/gangtool/personal/vigilante/can_use(mob/living/carbon/human/user, silent = FALSE)
 	if(!istype(user) || user.incapacitated || user.mind != bound_mind)
 		return FALSE
 	return !user.mind.has_antag_datum(/datum/antagonist/gang)
@@ -209,30 +198,33 @@ GLOBAL_VAR_INIT(gangmageddon_active, FALSE)
 		points += 3
 		to_chat(holder, span_notice("You have also received 3 influence for possessing a mindshield implant."))
 
-/obj/item/gangtool/personal/vigilante/show_menu(mob/user)
-	var/list/dat = list()
-	dat += "Registration: <b>Vigilante</b><br>"
-	dat += "Your Influence: <b>[points]</b><br>"
-	dat += "<center><a href='byond://?src=[REF(src)];destroy=1'><b>DESTROY HELD CONTRABAND</b></a></center><br>"
-	dat += "<hr>"
-	dat += shop_html(user)
-	dat += "<a href='byond://?src=[REF(src)];refresh=1'>Refresh</a><br>"
-	var/datum/browser/popup = new(user, "gangtool", "Welcome to Vigilante's Companion v1.2", 340, 625)
-	popup.set_content(dat.Join())
-	popup.open()
+/obj/item/gangtool/personal/vigilante/ui_data(mob/user)
+	var/list/data = list()
+	data["vigilante"] = TRUE
+	data["title"] = "Vigilante's Companion v1.2"
+	data["registered"] = TRUE
+	data["points"] = points
+	data["currency"] = currency_name
+	var/obj/item/held = user.get_active_held_item()
+	data["held_item"] = held?.name
+	data["held_value"] = held ? contraband_value(held) : 0
+	data["categories"] = shop_data(user)
+	return data
 
-/obj/item/gangtool/personal/vigilante/Topic(href, href_list)
+/obj/item/gangtool/personal/vigilante/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	var/mob/user = usr
 	if(!can_use(user))
 		return
-	if(href_list["purchase"])
-		var/list/category = buyable_items[url_decode(href_list["cat"])]
-		var/datum/gang_item/item = category?[href_list["id"]]
-		if(item?.can_buy(user, null, src))
-			item.purchase(user, null, src)
-	if(href_list["destroy"])
-		destroy_contraband(user)
-	show_menu(user)
+	switch(action)
+		if("buy")
+			var/list/category = buyable_items[params["category"]]
+			var/datum/gang_item/item = category?[params["id"]]
+			if(item?.can_buy(user, null, src))
+				INVOKE_ASYNC(item, TYPE_PROC_REF(/datum/gang_item, purchase), user, null, src)
+			return TRUE
+		if("destroy")
+			INVOKE_ASYNC(src, PROC_REF(destroy_contraband), user)
+			return TRUE
 
 /// Gang gear a vigilante can hand in, and what it pays
 /obj/item/gangtool/personal/vigilante/proc/contraband_value(obj/item/thing)
