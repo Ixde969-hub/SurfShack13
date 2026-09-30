@@ -45,13 +45,14 @@
 
 /obj/item/gun/ballistic/automatic/pistol/g17/update_icon_state()
 	. = ..()
-	icon_state = "[base_icon_state][suppressed ? "-suppressed" : ""]"
+	// the slide locks back on an empty magazine
+	icon_state = "[base_icon_state][bolt_locked ? "-e" : ""][suppressed ? "-suppressed" : ""]"
 
 // The suppressed sprite is wider than a tile: the end of the suppressor is an overlay one tile to the right.
 /obj/item/gun/ballistic/automatic/pistol/g17/update_overlays()
 	. = ..()
 	if(suppressed)
-		var/mutable_appearance/suppressor_end = mutable_appearance(icon, "[base_icon_state]-suppressed_overflow")
+		var/mutable_appearance/suppressor_end = mutable_appearance(icon, "[icon_state]_overflow")
 		suppressor_end.pixel_x = 32
 		. += suppressor_end
 
@@ -84,11 +85,12 @@
 		new /obj/item/ammo_box/magazine/g17(src)
 
 /datum/uplink_item/dangerous/g17
-	name = "Glock 17 Handgun with three magazines"
+	name = "Glock 17 Handgun"
 	desc = "A simple yet popular handgun chambered in 9mm. Made out of strong but lightweight polymer. \
-		The standard magazine can hold up to 14 9mm cartridges. Compatible with a universal suppressor. This pack comes with three spare magazines."
-	item = /obj/item/storage/box/syndie_kit/glock17
-	cost = 10
+		Comes loaded with one 14-round magazine; spare magazines are sold separately. Compatible with a universal suppressor. \
+		Has a \"switch\" fitted that turns it into a very fast but wildly inaccurate full-auto."
+	item = /obj/item/gun/ballistic/automatic/pistol/g17
+	cost = 7
 	surplus = 15
 	purchasable_from = UPLINK_TRAITORS | UPLINK_SERIOUS_OPS
 

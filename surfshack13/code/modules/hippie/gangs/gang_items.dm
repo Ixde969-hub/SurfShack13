@@ -239,11 +239,11 @@
 	item_path = /obj/item/ammo_box/magazine/uzim9mm
 
 /datum/gang_item/weapon/glock
-	name = "Glock 17"
+	name = "Glock 17 with three spare magazines"
 	id = "g17"
 	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
-	cost = 30
-	item_path = /obj/item/gun/ballistic/automatic/pistol/g17
+	cost = 45
+	item_path = /obj/item/storage/box/syndie_kit/glock17
 
 /datum/gang_item/weapon/glock_ammo
 	name = "G17 Ammo"
