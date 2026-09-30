@@ -1,5 +1,5 @@
-import { type ReactNode, useEffect, useState } from 'react';
-import { Box, Input } from 'tgui-core/components';
+import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
+import { Input } from 'tgui-core/components';
 
 import { useBackend } from '../backend';
 import { Window } from '../layouts';
@@ -21,8 +21,15 @@ const OUTLINE = '#141018';
 const FONT: Record<string, string[]> = {
   A: ['010', '101', '111', '101', '101'],
   C: ['011', '100', '100', '100', '011'],
+  D: ['110', '101', '101', '101', '110'],
   E: ['111', '100', '110', '100', '111'],
+  G: ['011', '100', '101', '101', '011'],
+  H: ['101', '101', '111', '101', '101'],
+  I: ['111', '010', '010', '010', '111'],
   K: ['101', '101', '110', '101', '101'],
+  M: ['101', '111', '111', '101', '101'],
+  N: ['111', '101', '101', '101', '101'],
+  V: ['101', '101', '101', '101', '010'],
   O: ['010', '101', '101', '101', '010'],
   P: ['110', '101', '110', '100', '100'],
   R: ['110', '101', '110', '101', '101'],
@@ -92,28 +99,62 @@ type ButtonColors = {
 };
 
 const GREEN: ButtonColors = {
-  light: '#8fe39a',
-  face: '#4cbb5c',
-  dark: '#2f8a3f',
+  light: '#7fc98a',
+  face: '#3f9a4e',
+  dark: '#26663a',
 };
 const RED: ButtonColors = {
-  light: '#f28a8a',
-  face: '#d9474f',
-  dark: '#a02a35',
+  light: '#e07a78',
+  face: '#b8393f',
+  dark: '#7c222b',
 };
 const BLUE: ButtonColors = {
-  light: '#9cc7f0',
-  face: '#4f8fd0',
-  dark: '#2f5f99',
+  light: '#8fb3d4',
+  face: '#4a78a8',
+  dark: '#2c4c72',
 };
 const GREY: ButtonColors = {
-  light: '#8c8c96',
-  face: '#5c5c66',
-  dark: '#3c3c44',
+  light: '#6c7078',
+  face: '#4a4d54',
+  dark: '#303238',
 };
 
-const BASE_FACE = '#b8b8d0';
-const BASE_DARK = '#7a7a96';
+// Steel base plate the buttons sit in
+const BASE_FACE = '#a3a8b0';
+const BASE_DARK = '#5f646c';
+
+// Gunmetal casing, matching the machine's sprite
+const STEEL_DARK = '#1c1e22';
+const STEEL = '#34373d';
+const STEEL_LIGHT = '#8d939c';
+const BRUSHED =
+  'repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px)';
+const GRIME =
+  'radial-gradient(ellipse at 15% 90%, rgba(40,30,15,0.35), transparent 45%), radial-gradient(ellipse at 85% 20%, rgba(40,30,15,0.25), transparent 40%)';
+
+/** A dome-headed rivet in one corner of a panel */
+const Rivet = (props: { position: CSSProperties }) => (
+  <div
+    style={{
+      ...props.position,
+      background: `radial-gradient(circle at 35% 35%, ${STEEL_LIGHT}, #2a2c30 70%)`,
+      borderRadius: '50%',
+      boxShadow: '0 1px 1px rgba(0,0,0,0.8)',
+      height: '7px',
+      position: 'absolute',
+      width: '7px',
+    }}
+  />
+);
+
+const Rivets = () => (
+  <>
+    <Rivet position={{ top: 6, left: 6 }} />
+    <Rivet position={{ top: 6, right: 6 }} />
+    <Rivet position={{ bottom: 6, left: 6 }} />
+    <Rivet position={{ bottom: 6, right: 6 }} />
+  </>
+);
 
 /** Round, chunky pixel-art push button with a metal base plate */
 const PixelButton = (props: {
@@ -124,7 +165,7 @@ const PixelButton = (props: {
   disabled?: boolean;
   onClick: () => void;
 }) => {
-  const { label, size = 17, scale = 5, disabled, onClick } = props;
+  const { label, size = 17, scale = 3, disabled, onClick } = props;
   const colors = disabled ? GREY : props.colors;
   const [pressed, setPressed] = useState(false);
   const depth = 3;
@@ -242,6 +283,8 @@ const PixelButton = (props: {
   );
 };
 
+const CUP_SCALE = 6;
+
 /** Pixel-art paper cup, filled with the liquid's colour */
 const PixelCup = (props: { beaker: Beaker | null; color: string | null }) => {
   const { beaker, color } = props;
@@ -312,8 +355,8 @@ const PixelCup = (props: { beaker: Beaker | null; color: string | null }) => {
 
   return (
     <svg
-      width={width * 7}
-      height={height * 7}
+      width={width * CUP_SCALE}
+      height={height * CUP_SCALE}
       viewBox={`0 0 ${width} ${height}`}
       shapeRendering="crispEdges"
     >
@@ -321,6 +364,33 @@ const PixelCup = (props: { beaker: Beaker | null; color: string | null }) => {
     </svg>
   );
 };
+
+const TITLE = 'VENDING MACHINE';
+
+/** Stamped steel nameplate with the title punched into it */
+const Nameplate = () => (
+  <div
+    style={{
+      background: `linear-gradient(${STEEL_LIGHT}, #5d626a)`,
+      border: `2px solid ${STEEL_DARK}`,
+      borderRadius: '3px',
+      boxShadow:
+        'inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 3px rgba(0,0,0,0.6)',
+      margin: '0 auto',
+      padding: '4px 10px 2px',
+      width: 'fit-content',
+    }}
+  >
+    <svg
+      width={textWidth(TITLE) * 3}
+      height={6 * 3}
+      viewBox={`0 0 ${textWidth(TITLE)} 6`}
+      shapeRendering="crispEdges"
+    >
+      <PixelText text={TITLE} x={0} y={0} color="#23262b" shadow="#b9bec6" />
+    </svg>
+  </div>
+);
 
 export const Scp294 = (props) => {
   const { act, data } = useBackend<Data>();
@@ -336,8 +406,9 @@ export const Scp294 = (props) => {
     return () => clearTimeout(timer);
   }, [pouring]);
 
+  // Pouring with no cup makes the machine drop one in first
   const pour = () => {
-    if (!beaker || !liquid.trim()) {
+    if (!liquid.trim()) {
       return;
     }
     act('pour', { name: liquid });
@@ -345,77 +416,67 @@ export const Scp294 = (props) => {
     setLiquid('');
   };
 
+  const cupHeight = 17 * CUP_SCALE;
+
   return (
-    <Window width={380} height={560}>
+    <Window width={330} height={500}>
       <Window.Content>
-        <Box
+        <div
           style={{
-            background: 'linear-gradient(#4a423a, #2a2521)',
-            border: '4px solid #1b1714',
-            borderRadius: '10px',
-            boxShadow: 'inset 0 0 0 3px #6b6056',
+            background: `${GRIME}, ${BRUSHED}, linear-gradient(${STEEL}, ${STEEL_DARK})`,
+            border: `3px solid #0e0f11`,
+            borderRadius: '4px',
+            boxShadow: `inset 0 0 0 2px ${STEEL_LIGHT}55, inset 0 0 30px rgba(0,0,0,0.6)`,
             display: 'flex',
             flexDirection: 'column',
             height: '100%',
-            padding: '12px',
+            padding: '14px 16px 10px',
+            position: 'relative',
           }}
         >
-          <Box style={{ textAlign: 'center' }}>
-            <svg
-              width={textWidth('SCP-294') * 5 + 10}
-              height={40}
-              viewBox={`-1 -1 ${textWidth('SCP-294') + 2} 8`}
-              shapeRendering="crispEdges"
-            >
-              <PixelText
-                text="SCP-294"
-                x={0}
-                y={0}
-                color="#e6c98f"
-                shadow="#000"
-              />
-            </svg>
-          </Box>
+          <Rivets />
+          <Nameplate />
 
-          <Box
+          <div
             style={{
-              background: '#0b1a10',
-              border: '3px solid #111',
-              borderRadius: '4px',
-              boxShadow: 'inset 0 0 14px rgba(0, 0, 0, 0.9)',
+              background: `repeating-linear-gradient(0deg, rgba(0,0,0,0.25) 0 1px, transparent 1px 3px), linear-gradient(#11232a, #0a1519)`,
+              border: `2px solid ${STEEL_DARK}`,
+              borderRadius: '2px',
+              boxShadow: `0 0 0 2px #50555d, inset 0 0 12px rgba(0,0,0,0.9)`,
               fontFamily: 'monospace',
-              margin: '6px 0 10px',
-              padding: '6px 8px',
+              margin: '10px 0',
+              padding: '5px 7px',
             }}
           >
-            <Box
+            <div
               style={{
-                color: status_error ? '#ff5a4d' : '#6dff8f',
-                minHeight: '18px',
+                color: status_error ? '#ff6a5a' : '#79d3e6',
+                fontSize: '11px',
+                minHeight: '15px',
                 textShadow: '0 0 4px currentColor',
               }}
             >
-              {status || (beaker ? 'ENTER ANY LIQUID' : 'PLEASE TAKE A CUP')}
-            </Box>
+              {'> '}
+              {status || 'ENTER ANY LIQUID'}
+            </div>
             <Input
               fluid
               autoFocus
-              disabled={!beaker}
               maxLength={MAX_LENGTH}
-              placeholder={beaker ? 'type a liquid, press enter...' : ''}
+              placeholder="type a liquid, press enter..."
               value={liquid}
               onChange={(e, value) => setLiquid(value)}
               onEnter={() => pour()}
             />
-          </Box>
+          </div>
 
-          <Box
+          <div
             style={{
               alignItems: 'center',
-              background: 'linear-gradient(#0c0b0a, #1f1c19)',
-              border: '4px solid #111',
-              borderRadius: '6px',
-              boxShadow: 'inset 0 6px 16px rgba(0, 0, 0, 0.9)',
+              background: `${BRUSHED}, linear-gradient(#050505, #17191c)`,
+              border: `3px solid #0b0c0d`,
+              borderRadius: '3px',
+              boxShadow: `0 0 0 2px #50555d, inset 0 8px 18px rgba(0,0,0,0.95)`,
               display: 'flex',
               flex: 1,
               flexDirection: 'column',
@@ -423,50 +484,50 @@ export const Scp294 = (props) => {
               position: 'relative',
             }}
           >
-            <Box
+            <div
               style={{
-                background: '#6b6056',
-                border: '2px solid #111',
+                background: `linear-gradient(90deg, #3a3d42, ${STEEL_LIGHT}, #3a3d42)`,
+                border: '2px solid #0b0c0d',
                 borderTop: 'none',
-                height: '14px',
-                left: 'calc(50% - 14px)',
+                height: '12px',
+                left: 'calc(50% - 11px)',
                 position: 'absolute',
                 top: 0,
-                width: '28px',
+                width: '22px',
               }}
             />
-            {pouring && !!beaker && (
-              <Box
+            {pouring && (
+              <div
                 style={{
                   background: cup_color || '#8fd3ff',
-                  bottom: '128px',
-                  left: 'calc(50% - 3px)',
+                  bottom: `${cupHeight + 10}px`,
+                  left: 'calc(50% - 2px)',
                   opacity: 0.85,
                   position: 'absolute',
-                  top: '14px',
-                  width: '6px',
+                  top: '12px',
+                  width: '4px',
                 }}
               />
             )}
             <PixelCup beaker={beaker} color={cup_color} />
-            <Box
+            <div
               style={{
-                background: '#3a3530',
-                borderTop: '3px solid #111',
+                background: `repeating-linear-gradient(90deg, #2a2d31 0 4px, #0e0f11 4px 6px)`,
+                borderTop: `2px solid ${STEEL_LIGHT}`,
                 height: '8px',
                 marginTop: '2px',
                 width: '100%',
               }}
             />
-          </Box>
+          </div>
 
-          <Box
+          <div
             style={{
-              color: '#d9c7a3',
+              color: '#9aa0a8',
               fontFamily: 'monospace',
-              fontSize: '11px',
-              minHeight: '16px',
-              padding: '4px 0',
+              fontSize: '10px',
+              minHeight: '14px',
+              padding: '4px 0 6px',
               textAlign: 'center',
             }}
           >
@@ -476,14 +537,19 @@ export const Scp294 = (props) => {
                     .map((reagent) => `${reagent.volume}u ${reagent.name}`)
                     .join(', ')
                 : `empty cup (${beaker.maxVolume}u)`
-              : 'no cup'}
-          </Box>
+              : `no cup - ${amount}u per pour`}
+          </div>
 
-          <Box
+          <div
             style={{
               alignItems: 'flex-end',
+              background: `${BRUSHED}, linear-gradient(#2a2d32, #1a1c20)`,
+              border: `2px solid #0e0f11`,
+              borderRadius: '3px',
+              boxShadow: `inset 0 1px 0 ${STEEL_LIGHT}44`,
               display: 'flex',
               justifyContent: 'space-around',
+              padding: '6px 4px 4px',
             }}
           >
             <PixelButton
@@ -495,9 +561,8 @@ export const Scp294 = (props) => {
             <PixelButton
               label="POUR"
               colors={RED}
-              size={21}
-              scale={5}
-              disabled={!beaker || !liquid.trim()}
+              size={19}
+              disabled={!liquid.trim()}
               onClick={pour}
             />
             <PixelButton
@@ -506,19 +571,8 @@ export const Scp294 = (props) => {
               disabled={!beaker}
               onClick={() => act('take_cup')}
             />
-          </Box>
-          <Box
-            style={{
-              color: '#8a7d6e',
-              fontFamily: 'monospace',
-              fontSize: '10px',
-              paddingTop: '2px',
-              textAlign: 'center',
-            }}
-          >
-            {amount}u per pour
-          </Box>
-        </Box>
+          </div>
+        </div>
       </Window.Content>
     </Window>
   );

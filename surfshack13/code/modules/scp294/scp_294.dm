@@ -70,11 +70,11 @@
 		playsound(src, SFX_TERMINAL_TYPE, 40, FALSE) // button press
 	switch(action)
 		if("pour")
-			if(QDELETED(beaker))
-				return FALSE
 			var/input = copytext(params["name"], 1, MAX_NAME_LEN)
 			if(!input)
 				return FALSE
+			if(QDELETED(beaker)) // no cup yet, drop one in first
+				dispense_cup()
 			if(beaker.reagents.holder_full())
 				set_status("CUP IS FULL", TRUE)
 				return TRUE
@@ -91,11 +91,8 @@
 		if("makecup")
 			if(beaker)
 				return FALSE
-			beaker = new /obj/item/reagent_containers/cup/glass/sillycup(src)
+			dispense_cup()
 			set_status(null)
-			playsound(src, 'sound/machines/click.ogg', 50, TRUE)
-			visible_message(span_notice("[src] dispenses a small, paper cup."))
-			update_appearance()
 			return TRUE
 		if("take_cup")
 			if(!beaker)
@@ -104,6 +101,13 @@
 			set_status(null)
 			playsound(src, 'sound/machines/click.ogg', 50, TRUE)
 			return TRUE
+
+/// Drops a fresh paper cup into the tray
+/obj/machinery/chem_dispenser/scp_294/proc/dispense_cup()
+	beaker = new /obj/item/reagent_containers/cup/glass/sillycup(src)
+	playsound(src, 'sound/machines/click.ogg', 50, TRUE)
+	visible_message(span_notice("[src] dispenses a small, paper cup."))
+	update_appearance()
 
 /// Sets the touchpad screen message, beeping or buzzing to match
 /obj/machinery/chem_dispenser/scp_294/proc/set_status(text, error = FALSE)
