@@ -29,6 +29,10 @@
 	)
 	/// Lowercase, space-less reagent name -> reagent typepath, built on first use
 	var/static/list/name_lookup
+	/// Message shown under the touchpad
+	var/status_text
+	/// Whether status_text is an error
+	var/status_error = FALSE
 
 /obj/machinery/chem_dispenser/scp_294/Destroy()
 	QDEL_NULL(beaker)
@@ -53,24 +57,36 @@
 		ui = new(user, src, "Scp294", name)
 		ui.open()
 
+/obj/machinery/chem_dispenser/scp_294/ui_data(mob/user)
+	. = ..()
+	.["amount"] = amount
+	.["status"] = status_text
+	.["status_error"] = status_error
+
 /obj/machinery/chem_dispenser/scp_294/handle_ui_act(action, params, datum/tgui/ui, datum/ui_state/state)
 	switch(action)
-		if("input")
+		if("dispense")
 			if(QDELETED(beaker))
 				return FALSE
-			var/input = tgui_input_text(ui.user, "Enter the name of any liquid", "Input", max_length = MAX_NAME_LEN)
-			if(!input || QDELETED(beaker) || !ui.user.can_perform_action(src, ALLOW_SILICON_REACH))
+			var/input = copytext(params["name"], 1, MAX_NAME_LEN)
+			if(!input)
 				return FALSE
 			var/reagent_type = find_reagent(input)
 			if(!reagent_type)
+				status_text = "OUT OF RANGE"
+				status_error = TRUE
 				say("OUT OF RANGE")
-				return FALSE
+				return TRUE
 			beaker.reagents.add_reagent(reagent_type, amount)
+			var/datum/reagent/reagent = reagent_type
+			status_text = "Dispensed [initial(reagent.name)]."
+			status_error = FALSE
 			return TRUE
 		if("makecup")
 			if(beaker)
 				return FALSE
 			beaker = new /obj/item/reagent_containers/cup/glass/sillycup(src)
+			status_text = null
 			visible_message(span_notice("[src] dispenses a small, paper cup."))
 			update_appearance()
 			return TRUE
