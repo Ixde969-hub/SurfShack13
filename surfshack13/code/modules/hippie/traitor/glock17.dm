@@ -1,22 +1,59 @@
-// Glock 17 - ported from HippieStation.
-// Built on Surf's 9mm pistol; Hippie drew empty/suppressed variants as whole sprites instead of overlays,
-// so the dmi has no "_suppressor" overlay state and the suppressed look comes from update_icon_state().
+// Glock 17 - ported from HippieStation, with new sprites.
+// Every Glock comes with a "switch" fitted: the fire-mode button flips it between accurate
+// semi-auto and very fast full-auto that sprays badly.
 
 /obj/item/gun/ballistic/automatic/pistol/g17
 	name = "Glock 17"
-	desc = "A classic 9mm handgun with a large magazine capacity. Used by security teams everywhere."
+	desc = "A classic 9mm handgun with a large magazine capacity. This one has an illegal auto sear, a \"switch\", fitted to the back of the slide."
 	icon = 'surfshack13/icons/hippie/glock17.dmi'
 	icon_state = "glock17"
 	base_icon_state = "glock17"
 	accepted_magazine_type = /obj/item/ammo_box/magazine/g17
 	show_bolt_icon = FALSE
 	mag_display = FALSE
+	actions_types = list(/datum/action/item_action/toggle_firemode)
 	/// Hippie's two alternating shot sounds
 	var/list/glock_fire_sounds = list('surfshack13/sound/hippie/pistol_glock17_1.ogg', 'surfshack13/sound/hippie/pistol_glock17_2.ogg')
+	/// Whether the switch is flipped to full-auto
+	var/switch_on = FALSE
+	/// Time between shots on full-auto (10 rounds a second)
+	var/switch_fire_delay = 0.1 SECONDS
+	/// Extra spread while on full-auto
+	var/switch_spread = 22
+	/// Extra recoil while on full-auto
+	var/switch_recoil = 0.6
+
+/obj/item/gun/ballistic/automatic/pistol/g17/examine(mob/user)
+	. = ..()
+	. += span_notice("The switch is set to <b>[switch_on ? "full-auto" : "semi-auto"]</b>. Use the fire-mode button to flip it.")
+
+/obj/item/gun/ballistic/automatic/pistol/g17/burst_select()
+	var/mob/user = usr
+	switch_on = !switch_on
+	if(switch_on)
+		AddComponent(/datum/component/automatic_fire, switch_fire_delay)
+		spread = initial(spread) + switch_spread
+		recoil = initial(recoil) + switch_recoil
+		balloon_alert(user, "switch on: full-auto")
+	else
+		qdel(GetComponent(/datum/component/automatic_fire))
+		spread = initial(spread)
+		recoil = initial(recoil)
+		balloon_alert(user, "switch off: semi-auto")
+	playsound(src, 'sound/machines/click.ogg', 60, TRUE)
+	update_item_action_buttons()
 
 /obj/item/gun/ballistic/automatic/pistol/g17/update_icon_state()
 	. = ..()
-	icon_state = "[base_icon_state][bolt_locked ? "-e" : ""][suppressed ? "-suppressed" : ""]"
+	icon_state = "[base_icon_state][suppressed ? "-suppressed" : ""]"
+
+// The suppressed sprite is wider than a tile: the end of the suppressor is an overlay one tile to the right.
+/obj/item/gun/ballistic/automatic/pistol/g17/update_overlays()
+	. = ..()
+	if(suppressed)
+		var/mutable_appearance/suppressor_end = mutable_appearance(icon, "[base_icon_state]-suppressed_overflow")
+		suppressor_end.pixel_x = 32
+		. += suppressor_end
 
 /obj/item/gun/ballistic/automatic/pistol/g17/fire_sounds()
 	if(suppressed)
