@@ -83,6 +83,22 @@
 	inhand_icon_state = "balisong"
 	force_on = 20
 	backstab_force = 125
+	light_system = OVERLAY_LIGHT
+	light_range = 1.5
+	light_power = 1.3
+	light_color = "#ff2448"
+	light_on = FALSE
+
+/obj/item/butterfly_knife/energy/on_transform(obj/item/source, mob/user, active)
+	. = ..()
+	set_light_on(active)
+	update_appearance(UPDATE_OVERLAYS)
+
+// The plasma blade glows in the dark
+/obj/item/butterfly_knife/energy/update_overlays()
+	. = ..()
+	if(HAS_TRAIT(src, TRAIT_TRANSFORM_ACTIVE))
+		. += emissive_appearance(icon, "energy_butterfly_on_emissive", src, alpha = src.alpha)
 
 /datum/uplink_item/dangerous/butterfly
 	name = "Energy Butterfly Knife"
