@@ -121,7 +121,7 @@
 	for(var/obj/effect/decal/cleanable/crayon/old_marking in target_turf)
 		qdel(old_marking)
 	var/area/territory = get_area(target_turf)
-	new /obj/effect/decal/cleanable/crayon/gang(target_turf, gang)
+	new /obj/effect/decal/cleanable/crayon/gang(target_turf, gang, user.mind)
 	to_chat(user, span_notice("You tagged [territory] for your gang!"))
 	user.log_message("tagged [territory] for the [gang.name] gang.", LOG_GAME)
 
@@ -136,8 +136,10 @@
 	do_icon_rotate = FALSE
 	/// The gang this tag claims territory for
 	var/datum/team/gang/gang
+	/// Who sprayed it, for Gangmageddon personal income
+	var/datum/mind/tagger
 
-/obj/effect/decal/cleanable/crayon/gang/Initialize(mapload, datum/team/gang/new_gang)
+/obj/effect/decal/cleanable/crayon/gang/Initialize(mapload, datum/team/gang/new_gang, datum/mind/new_tagger)
 	if(!istype(new_gang))
 		return INITIALIZE_HINT_QDEL
 	gang = new_gang
@@ -145,10 +147,16 @@
 	var/area/territory = get_area(src)
 	gang.new_territories[territory.type] = territory.name
 	gang.lost_territories -= territory.type
+	if(new_tagger)
+		tagger = new_tagger
+		LAZYADD(gang.tags_by_mind[tagger], src)
 
 /obj/effect/decal/cleanable/crayon/gang/Destroy()
 	if(gang)
 		var/area/territory = get_area(src)
+		if(tagger)
+			LAZYREMOVE(gang.tags_by_mind[tagger], src)
+			tagger = null
 		if(territory)
 			gang.new_territories -= territory.type
 			if(territory.type in gang.territories)

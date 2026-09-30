@@ -10,3 +10,11 @@
 #define GANG_DOM_REQUIRED_TURFS 30
 /// How many blocked ticks before the dominator complains again
 #define GANG_DOM_BLOCKED_SPAM_CAP 6
+
+// Which shops a /datum/gang_item shows up in
+/// Normal Gang War gangtools (gang-wide influence)
+#define GANG_MODE_GANGS (1<<0)
+/// Gangmageddon personal gangtools (per-gangster points)
+#define GANG_MODE_GANGMAGEDDON (1<<1)
+/// Gangmageddon vigilante uplinks
+#define GANG_MODE_VIGILANTE (1<<2)

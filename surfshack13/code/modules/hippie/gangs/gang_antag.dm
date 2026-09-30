@@ -13,6 +13,8 @@
 	var/message_name = "Gangster"
 	/// Our gang
 	var/datum/team/gang/gang
+	/// Gangmageddon: the gangtool every gangster gets as an action button
+	var/obj/item/gangtool/personal/personal_tool
 
 /datum/antagonist/gang/can_be_owned(datum/mind/new_owner)
 	. = ..()
@@ -54,9 +56,16 @@
 		create_team()
 	gang.add_member(owner)
 	owner.current.log_message("has been converted to the [gang.name] gang!", LOG_ATTACK, color = "red")
-	return ..()
+	. = ..()
+	owner.remove_antag_datum(/datum/antagonist/vigilante)
+	if(GLOB.gangmageddon_active)
+		personal_tool = new(null, owner, gang)
 
 /datum/antagonist/gang/on_removal()
+	QDEL_NULL(personal_tool)
+	// Deconverted crew go back to hunting gangs. Promotions and demotions are silent and re-add a gang datum.
+	if(GLOB.gangmageddon_active && !silent)
+		addtimer(CALLBACK(owner, TYPE_PROC_REF(/datum/mind, add_antag_datum), /datum/antagonist/vigilante), 1)
 	if(gang)
 		gang.remove_member(owner)
 		owner.current?.log_message("has been deconverted from the [gang.name] gang!", LOG_ATTACK, color = "red")

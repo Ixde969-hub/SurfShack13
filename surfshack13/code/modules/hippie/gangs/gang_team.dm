@@ -45,6 +45,10 @@ GLOBAL_LIST_EMPTY(gangs)
 	var/next_point_time
 	/// Shuttle recalls left
 	var/recalls = GANG_MAXIMUM_RECALLS
+	/// Gangmageddon: whether this gang has placed its reinforcements gateway
+	var/gateway_built = FALSE
+	/// Gangmageddon: mind = list(tags they sprayed), for personal income
+	var/list/tags_by_mind = list()
 
 /datum/team/gang/New(starting_members)
 	. = ..()
@@ -112,6 +116,9 @@ GLOBAL_LIST_EMPTY(gangs)
 			message += "Takeover shortened by [(domination_time - new_time) * 0.1] seconds for defending [length(territories)] territories.<br>"
 			domination_time = new_time
 		message += "<b>[domination_time_remaining()] seconds remain</b> in hostile takeover.<br>"
+	else if(GLOB.gangmageddon_active)
+		for(var/obj/item/gangtool/personal/tool in gangtools)
+			tool.pay_income()
 	else
 		var/new_influence = min(999, influence + 15 + (uniformed * 2) + length(territories))
 		if(new_influence != influence)
@@ -151,6 +158,10 @@ GLOBAL_LIST_EMPTY(gangs)
 			uniformed++
 	return uniformed
 
+/// How many tags this gangster has personally sprayed that still stand
+/datum/team/gang/proc/get_soldier_territories(datum/mind/soldier)
+	return length(tags_by_mind[soldier])
+
 /datum/team/gang/proc/adjust_influence(value)
 	influence = max(0, influence + value)
 
@@ -159,7 +170,7 @@ GLOBAL_LIST_EMPTY(gangs)
 	if(!message)
 		return
 	for(var/obj/item/gangtool/tool as anything in gangtools)
-		var/mob/living/holder = get(tool.loc, /mob/living)
+		var/mob/living/holder = tool.get_holder()
 		if(!holder?.mind || holder.stat != CONSCIOUS)
 			continue
 		var/datum/antagonist/gang/gangster = holder.mind.has_antag_datum(/datum/antagonist/gang)

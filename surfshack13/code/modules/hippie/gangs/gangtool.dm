@@ -23,12 +23,14 @@
 	var/promotable = FALSE
 	/// category = list(id = /datum/gang_item)
 	var/list/buyable_items = list()
+	/// Which shop items this tool sells (GANG_MODE_* flag)
+	var/mode_flag = GANG_MODE_GANGS
 
 /obj/item/gangtool/Initialize(mapload)
 	. = ..()
 	for(var/datum/gang_item/item_type as anything in subtypesof(/datum/gang_item))
 		var/id = initial(item_type.id)
-		if(!id)
+		if(!id || !(initial(item_type.mode_flags) & mode_flag))
 			continue
 		var/category = initial(item_type.category)
 		LAZYINITLIST(buyable_items[category])
@@ -82,33 +84,39 @@
 		if(gang.domination_time != GANG_NOT_DOMINATING)
 			dat += "<center><font color='red'>Takeover In Progress:<br><b>[DisplayTimeText(gang.domination_time_remaining() SECONDS)] remain</b></font></center>"
 		dat += "Registration: <b>[gang.name] Gang Boss</b><br>"
-		dat += "Organization Size: <b>[length(gang.members)]</b> | Station Control: <b>[length(gang.territories)] territories under control.</b> | Influence: <b>[gang.influence]</b><br>"
+		dat += "Organization Size: <b>[length(gang.members)]</b> | Station Control: <b>[length(gang.territories)] territories under control.</b> | Influence: <b>[get_points()]</b><br>"
 		dat += "Time until Influence grows: <b>[time2text(max(0, gang.next_point_time - world.time), "mm:ss", 0)]</b><br>"
 		dat += "<a href='byond://?src=[REF(src)];commute=1'>Send message to Gang</a><br>"
 		dat += "<a href='byond://?src=[REF(src)];recall=1'>Recall shuttle</a><br>"
 		dat += "<hr>"
-		for(var/category in buyable_items)
-			dat += "<b>[category]</b><br>"
-			for(var/id in buyable_items[category])
-				var/datum/gang_item/item = buyable_items[category][id]
-				if(!item.can_see(user, gang, src))
-					continue
-				var/cost = item.get_cost_display(user, gang, src)
-				if(cost)
-					dat += "[cost] "
-				var/item_name = item.get_name_display(user, gang, src)
-				if(item.can_buy(user, gang, src))
-					item_name = "<a href='byond://?src=[REF(src)];purchase=1;id=[id];cat=[url_encode(category)]'>[item_name]</a>"
-				dat += item_name
-				var/extra = item.get_extra_info(user, gang, src)
-				if(extra)
-					dat += "<br><i>[extra]</i>"
-				dat += "<br>"
-			dat += "<br>"
+		dat += shop_html(user)
 	dat += "<a href='byond://?src=[REF(src)];refresh=1'>Refresh</a><br>"
 	var/datum/browser/popup = new(user, "gangtool", "Welcome to GangTool v4.0", 340, 625)
 	popup.set_content(dat.Join())
 	popup.open()
+
+/// The shop listing, shared by every gangtool type
+/obj/item/gangtool/proc/shop_html(mob/user)
+	var/list/dat = list()
+	for(var/category in buyable_items)
+		dat += "<b>[category]</b><br>"
+		for(var/id in buyable_items[category])
+			var/datum/gang_item/item = buyable_items[category][id]
+			if(!item.can_see(user, gang, src))
+				continue
+			var/cost = item.get_cost_display(user, gang, src)
+			if(cost)
+				dat += "[cost] "
+			var/item_name = item.get_name_display(user, gang, src)
+			if(item.can_buy(user, gang, src))
+				item_name = "<a href='byond://?src=[REF(src)];purchase=1;id=[id];cat=[url_encode(category)]'>[item_name]</a>"
+			dat += item_name
+			var/extra = item.get_extra_info(user, gang, src)
+			if(extra)
+				dat += "<br><i>[extra]</i>"
+			dat += "<br>"
+		dat += "<br>"
+	return dat.Join()
 
 /obj/item/gangtool/Topic(href, href_list)
 	. = ..()
@@ -130,6 +138,17 @@
 	if(href_list["recall"])
 		recall(user)
 	show_menu(user)
+
+/// Currency available to spend in this tool's shop
+/obj/item/gangtool/proc/get_points()
+	return gang?.influence || 0
+
+/obj/item/gangtool/proc/spend_points(amount)
+	gang?.adjust_influence(-amount)
+
+/// The mob currently carrying this tool, if any
+/obj/item/gangtool/proc/get_holder()
+	return get(loc, /mob/living)
 
 /// Sends a gang-wide message
 /obj/item/gangtool/proc/ping_gang(mob/user)

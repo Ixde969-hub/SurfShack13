@@ -1,5 +1,4 @@
-// Gangtool shop entries. Only Hippie's "Gang War" items are ported; the Gangmageddon and
-// vigilante-only entries (gateways, mounted guns, rocket launchers, mechs) are left out.
+// Gangtool shop entries. Gangmageddon and vigilante-only entries live in gangmageddon/gangmageddon_items.dm.
 
 /datum/gang_item
 	/// Shown in the shop
@@ -14,6 +13,8 @@
 	var/category
 	/// Unique key within its category
 	var/id
+	/// Which shops sell this (GANG_MODE_* flags)
+	var/mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON
 
 /datum/gang_item/proc/purchase(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool, check_canbuy = TRUE)
 	if(check_canbuy && !can_buy(user, gang, gangtool))
@@ -21,9 +22,9 @@
 	var/real_cost = get_cost(user, gang, gangtool)
 	if(!spawn_item(user, gang, gangtool))
 		return FALSE
-	gang.adjust_influence(-real_cost)
+	gangtool.spend_points(real_cost)
 	to_chat(user, span_notice("You bought \the [name]."))
-	log_game("[key_name(user)] bought [name] for the [gang.name] gang with [real_cost] influence.")
+	log_game("[key_name(user)] bought [name] for [real_cost] influence[gang ? " for the [gang.name] gang" : " as a vigilante"].")
 	return TRUE
 
 /// Spawns the item in the user's hands. Returns TRUE on success.
@@ -37,7 +38,7 @@
 	return TRUE
 
 /datum/gang_item/proc/can_buy(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
-	return gang && gang.influence >= get_cost(user, gang, gangtool) && can_see(user, gang, gangtool)
+	return gangtool.get_points() >= get_cost(user, gang, gangtool) && can_see(user, gang, gangtool)
 
 /datum/gang_item/proc/can_see(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
 	return TRUE
@@ -169,6 +170,7 @@
 /datum/gang_item/weapon/shuriken
 	name = "Shuriken"
 	id = "shuriken"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 3
 	item_path = /obj/item/throwing_star
 
@@ -181,12 +183,14 @@
 /datum/gang_item/weapon/surplus
 	name = "Surplus Rifle"
 	id = "surplus"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 8
 	item_path = /obj/item/gun/ballistic/automatic/surplus
 
 /datum/gang_item/weapon/surplus_ammo
 	name = "Surplus Rifle Ammo"
 	id = "surplus_ammo"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 5
 	item_path = /obj/item/ammo_box/magazine/m10mm/rifle
 
@@ -194,12 +198,14 @@
 /datum/gang_item/weapon/shotgun
 	name = "Double-Barreled Shotgun"
 	id = "sawn"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 6
 	item_path = /obj/item/gun/ballistic/shotgun/doublebarrel
 
 /datum/gang_item/weapon/buckshot
 	name = "Box of Buckshot"
 	id = "buckshot"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 5
 	item_path = /obj/item/storage/box/lethalshot
 
@@ -207,36 +213,42 @@
 /datum/gang_item/weapon/pistol
 	name = "Makarov Pistol"
 	id = "pistol"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 30
 	item_path = /obj/item/gun/ballistic/automatic/pistol
 
 /datum/gang_item/weapon/pistol_ammo
 	name = "Makarov Ammo"
 	id = "pistol_ammo"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 10
 	item_path = /obj/item/ammo_box/magazine/m9mm
 
 /datum/gang_item/weapon/uzi
 	name = "Uzi SMG"
 	id = "uzi"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 60
 	item_path = /obj/item/gun/ballistic/automatic/mini_uzi
 
 /datum/gang_item/weapon/uzi_ammo
 	name = "Uzi Ammo"
 	id = "uzi_ammo"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 40
 	item_path = /obj/item/ammo_box/magazine/uzim9mm
 
 /datum/gang_item/weapon/glock
 	name = "Glock 17"
 	id = "g17"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 30
 	item_path = /obj/item/gun/ballistic/automatic/pistol/g17
 
 /datum/gang_item/weapon/glock_ammo
 	name = "G17 Ammo"
 	id = "g17_ammo"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 10
 	item_path = /obj/item/ammo_box/magazine/g17
 
@@ -269,6 +281,7 @@
 /datum/gang_item/equipment/sharpener
 	name = "Sharpener"
 	id = "whetstone"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 3
 	item_path = /obj/item/sharpener
 
@@ -293,6 +306,7 @@
 /datum/gang_item/equipment/stimpack
 	name = "Black Market Stimulants"
 	id = "stimpack"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 12
 	item_path = /obj/item/reagent_containers/hypospray/medipen/stimulants
 
@@ -310,6 +324,7 @@
 /datum/gang_item/equipment/wetwork_boots
 	name = "Wetwork Boots"
 	id = "wetwork"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 20
 	item_path = /obj/item/clothing/shoes/combat/gang
 
@@ -321,12 +336,14 @@
 /datum/gang_item/equipment/bulletproof_armor
 	name = "Bulletproof Armor"
 	id = "BPA"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 20
 	item_path = /obj/item/clothing/suit/armor/bulletproof
 
 /datum/gang_item/equipment/bulletproof_helmet
 	name = "Bulletproof Helmet"
 	id = "BPH"
+	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 10
 	item_path = /obj/item/clothing/head/helmet/alt
 
@@ -354,6 +371,7 @@
 /datum/gang_item/equipment/gangtool
 	name = "Spare Gangtool"
 	id = "gangtool"
+	mode_flags = GANG_MODE_GANGS
 	cost = 10
 
 /datum/gang_item/equipment/gangtool/spawn_item(mob/living/carbon/user, datum/team/gang/gang, obj/item/gangtool/gangtool)
