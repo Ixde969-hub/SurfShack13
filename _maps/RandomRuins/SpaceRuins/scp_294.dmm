@@ -10,9 +10,7 @@
 /turf/template_noop,
 /area/space/nearstation)
 "ad" = (
-/turf/open/floor/plating/airless{
-	icon_state = "platingdmg2"
-	},
+/turf/open/floor/plating/airless,
 /area/ruin/space/has_grav/powered/scp_294)
 "ae" = (
 /obj/structure/lattice,
@@ -281,9 +279,7 @@
 /turf/open/floor/iron/airless,
 /area/ruin/space/has_grav/powered/scp_294)
 "aR" = (
-/turf/open/floor/plating/airless{
-	icon_state = "platingdmg1"
-	},
+/turf/open/floor/plating/airless,
 /area/ruin/space/has_grav/powered/scp_294)
 "aS" = (
 /obj/item/stack/tile/iron,
@@ -295,15 +291,11 @@
 "aT" = (
 /obj/structure/grille/broken,
 /obj/item/stack/rods,
-/turf/open/floor/plating/airless{
-	icon_state = "platingdmg1"
-	},
+/turf/open/floor/plating/airless,
 /area/ruin/space/has_grav/powered/scp_294)
 "aU" = (
 /obj/item/shard,
-/turf/open/floor/plating/airless{
-	icon_state = "platingdmg1"
-	},
+/turf/open/floor/plating/airless,
 /area/ruin/space/has_grav/powered/scp_294)
 "aV" = (
 /obj/structure/lattice,
@@ -336,15 +328,11 @@
 /obj/structure/grille/broken,
 /obj/item/shard,
 /obj/item/stack/rods,
-/turf/open/floor/plating/airless{
-	icon_state = "platingdmg1"
-	},
+/turf/open/floor/plating/airless,
 /area/ruin/space/has_grav/powered/scp_294)
 "bb" = (
 /obj/item/stack/rods,
-/turf/open/floor/plating/airless{
-	icon_state = "platingdmg1"
-	},
+/turf/open/floor/plating/airless,
 /area/ruin/space/has_grav/powered/scp_294)
 "bc" = (
 /obj/item/stack/tile/iron,
@@ -370,9 +358,7 @@
 /turf/template_noop,
 /area/template_noop)
 "bg" = (
-/turf/open/floor/plating/airless{
-	icon_state = "platingdmg2"
-	},
+/turf/open/floor/plating/airless,
 /area/ruin/space/has_grav/powered/scp_294)
 "bi" = (
 /turf/open/floor/iron/airless,
