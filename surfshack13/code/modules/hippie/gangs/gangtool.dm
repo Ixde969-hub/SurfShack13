@@ -38,7 +38,9 @@
 /obj/item/gangtool/Destroy()
 	gang?.gangtools -= src
 	gang = null
-	QDEL_LIST_ASSOC_VAL(buyable_items)
+	for(var/category in buyable_items)
+		QDEL_LIST_ASSOC_VAL(buyable_items[category])
+	buyable_items.Cut()
 	return ..()
 
 /obj/item/gangtool/update_overlays()

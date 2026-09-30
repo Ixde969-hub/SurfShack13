@@ -128,9 +128,9 @@ GLOBAL_LIST_EMPTY(cortical_borers)
 	return ..()
 
 /mob/living/basic/cortical_borer/death(gibbed)
+	. = ..()
 	if(host)
 		leave_host()
-	return ..()
 
 /mob/living/basic/cortical_borer/proc/became_player_controlled()
 	mind?.add_antag_datum(/datum/antagonist/cortical_borer)

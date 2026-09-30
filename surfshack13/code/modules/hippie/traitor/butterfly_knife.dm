@@ -52,7 +52,7 @@
 	return COMPONENT_NO_DEFAULT_MESSAGE
 
 /obj/item/butterfly_knife/attack(mob/living/target_mob, mob/living/user, params)
-	if(!HAS_TRAIT(src, TRAIT_TRANSFORM_ACTIVE) || !user.combat_mode || !ishuman(target_mob) || target_mob == user)
+	if(!HAS_TRAIT(src, TRAIT_TRANSFORM_ACTIVE) || !user.combat_mode || !ishuman(target_mob) || target_mob == user || HAS_TRAIT(user, TRAIT_PACIFISM))
 		return ..()
 	if(target_mob.stat == DEAD || check_target_facings(user, target_mob) != FACING_SAME_DIR)
 		return ..()
