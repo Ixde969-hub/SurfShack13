@@ -65,32 +65,53 @@
 	.["status_error"] = status_error
 
 /obj/machinery/chem_dispenser/scp_294/handle_ui_act(action, params, datum/tgui/ui, datum/ui_state/state)
+	// "dispense" and "eject" are taken by the parent chem_dispenser's ui_act, so these use their own names
+	if(action in list("pour", "makecup", "take_cup"))
+		playsound(src, SFX_TERMINAL_TYPE, 40, FALSE) // button press
 	switch(action)
-		if("dispense")
+		if("pour")
 			if(QDELETED(beaker))
 				return FALSE
 			var/input = copytext(params["name"], 1, MAX_NAME_LEN)
 			if(!input)
 				return FALSE
+			if(beaker.reagents.holder_full())
+				set_status("CUP IS FULL", TRUE)
+				return TRUE
 			var/reagent_type = find_reagent(input)
 			if(!reagent_type)
-				status_text = "OUT OF RANGE"
-				status_error = TRUE
+				set_status("OUT OF RANGE", TRUE)
 				say("OUT OF RANGE")
 				return TRUE
 			beaker.reagents.add_reagent(reagent_type, amount)
 			var/datum/reagent/reagent = reagent_type
-			status_text = "Dispensed [initial(reagent.name)]."
-			status_error = FALSE
+			set_status("DISPENSED [uppertext(initial(reagent.name))]")
+			playsound(src, 'surfshack13/sound/misc/scp294_pour.ogg', 50, TRUE)
 			return TRUE
 		if("makecup")
 			if(beaker)
 				return FALSE
 			beaker = new /obj/item/reagent_containers/cup/glass/sillycup(src)
-			status_text = null
+			set_status(null)
+			playsound(src, 'sound/machines/click.ogg', 50, TRUE)
 			visible_message(span_notice("[src] dispenses a small, paper cup."))
 			update_appearance()
 			return TRUE
+		if("take_cup")
+			if(!beaker)
+				return FALSE
+			replace_beaker(ui.user)
+			set_status(null)
+			playsound(src, 'sound/machines/click.ogg', 50, TRUE)
+			return TRUE
+
+/// Sets the touchpad screen message, beeping or buzzing to match
+/obj/machinery/chem_dispenser/scp_294/proc/set_status(text, error = FALSE)
+	status_text = text
+	status_error = error
+	if(!text)
+		return
+	playsound(src, error ? 'sound/machines/buzz/buzz-two.ogg' : 'sound/machines/beep/twobeep.ogg', 40, FALSE)
 
 /// Finds a synthesizable reagent typepath from what the user typed, or null
 /obj/machinery/chem_dispenser/scp_294/proc/find_reagent(input)
