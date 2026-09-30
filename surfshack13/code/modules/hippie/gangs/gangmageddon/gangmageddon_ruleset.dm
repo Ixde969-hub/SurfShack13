@@ -1,7 +1,7 @@
 // Gangmageddon - ported from HippieStation as a safer, admin-forced event round.
 //
 // Differences from Hippie, on purpose:
-// - weight 0: it never rolls by itself, admins force it from the dynamic panel.
+// - it is rarer than normal Gang War, but it can roll on its own at 15+ players.
 // - Security, command-security and silicon jobs are closed through the job system instead of
 //   Hippie's hard-coded area wipes, and nothing on the map is deleted or rewritten.
 //   The armory is only bolted shut, which the crew can undo.
@@ -26,11 +26,12 @@
 		JOB_WARDEN,
 	)
 	required_candidates = 3
-	weight = 0
-	cost = 40
-	requirements = list(101, 101, 101, 101, 101, 101, 101, 101, 101, 101)
+	weight = 2
+	cost = 30
+	// population brackets are 6 players wide: 15-17 players need threat 50, big rounds need 20
+	requirements = list(101, 101, 50, 40, 35, 30, 25, 20, 20, 20)
 	flags = HIGH_IMPACT_RULESET
-	minimum_players = 25
+	minimum_players = 15
 	/// How many gangs to make
 	var/gangs_to_create = 2
 	/// Bosses in each gang

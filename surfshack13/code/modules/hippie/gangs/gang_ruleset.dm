@@ -17,13 +17,14 @@
 		JOB_WARDEN,
 	)
 	required_candidates = 2
-	weight = 2
+	weight = 3
 	cost = 20
-	requirements = list(101, 101, 70, 40, 30, 20, 10, 10, 10, 10)
+	// population brackets are 6 players wide: 10-11 players need threat 40, big rounds need 10
+	requirements = list(101, 40, 35, 30, 25, 20, 15, 10, 10, 10)
 	// 2 gangs, plus one more per 25 players, up to Hippie's usual 4
 	antag_cap = list("denominator" = 25, "offset" = 1)
 	flags = HIGH_IMPACT_RULESET
-	minimum_players = 25
+	minimum_players = 10
 
 /datum/dynamic_ruleset/roundstart/gangs/pre_execute(population)
 	. = ..()

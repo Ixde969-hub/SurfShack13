@@ -90,7 +90,7 @@
 		Comes loaded with one 14-round magazine; spare magazines are sold separately. Compatible with a universal suppressor. \
 		Has a \"switch\" fitted that turns it into a very fast but wildly inaccurate full-auto."
 	item = /obj/item/gun/ballistic/automatic/pistol/g17
-	cost = 7
+	cost = 10
 	surplus = 15
 	purchasable_from = UPLINK_TRAITORS | UPLINK_SERIOUS_OPS
 

@@ -6599,6 +6599,7 @@
 #include "surfshack13\code\modules\hippie\gangs\gang_ruleset.dm"
 #include "surfshack13\code\modules\hippie\gangs\gang_team.dm"
 #include "surfshack13\code\modules\hippie\gangs\gang_tools.dm"
+#include "surfshack13\code\modules\hippie\gangs\gang_uzi.dm"
 #include "surfshack13\code\modules\hippie\gangs\gangmageddon\gangmageddon_items.dm"
 #include "surfshack13\code\modules\hippie\gangs\gangmageddon\gangmageddon_ruleset.dm"
 #include "surfshack13\code\modules\hippie\gangs\gangmageddon\gangmageddon_tools.dm"

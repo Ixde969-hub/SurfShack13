@@ -254,7 +254,7 @@
 	id = "uzi"
 	mode_flags = GANG_MODE_GANGS | GANG_MODE_GANGMAGEDDON | GANG_MODE_VIGILANTE
 	cost = 60
-	item_path = /obj/item/gun/ballistic/automatic/mini_uzi
+	item_path = /obj/item/gun/ballistic/automatic/mini_uzi/gang
 
 /datum/gang_item/weapon/uzi_ammo
 	name = "Uzi Ammo"
