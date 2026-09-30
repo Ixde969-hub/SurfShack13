@@ -60,6 +60,7 @@
 /obj/machinery/chem_dispenser/scp_294/ui_data(mob/user)
 	. = ..()
 	.["amount"] = amount
+	.["cup_color"] = beaker?.reagents?.total_volume ? mix_color_from_reagents(beaker.reagents.reagent_list) : null
 	.["status"] = status_text
 	.["status_error"] = status_error
 
