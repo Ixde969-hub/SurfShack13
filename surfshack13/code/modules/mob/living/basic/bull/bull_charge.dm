@@ -138,6 +138,9 @@
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/start_charge(atom/target, with_windup = TRUE)
 	if(charging || !isliving(owner))
 		return FALSE
+	// No charging out of crates, lockers or bellies
+	if(!isturf(owner.loc))
+		return FALSE
 	var/turf/target_turf = get_turf(target)
 	if(!target_turf || target_turf.z != owner.z || target_turf == get_turf(owner))
 		return FALSE
