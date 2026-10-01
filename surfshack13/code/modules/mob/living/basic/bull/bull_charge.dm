@@ -45,6 +45,8 @@
 	var/throw_range = 6
 	/// How long gored mobs stay down
 	var/gore_knockdown = 2 SECONDS
+	/// Chance a charge tosses its victim high into the air instead of just flinging them
+	var/toss_chance = 35
 	/// Damage dealt to fragile structures (windows, grilles, tables...) we plough through
 	var/fragile_damage = 400
 	/// Damage dealt to other dense objects we slam into (airlocks, machines...)
@@ -295,7 +297,7 @@
 		victim.Knockdown(gore_knockdown * 0.5)
 		recoil(null)
 		return
-	bull_gore(bull, victim, gore_damage, throw_range, charge_dir, WOUND_SEVERITY_SEVERE, gore_knockdown)
+	bull_gore(bull, victim, gore_damage, throw_range, charge_dir, WOUND_SEVERITY_SEVERE, gore_knockdown, toss_chance)
 
 /// Knock a door clean off its frame and send it flying ahead of us
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/fling_door(obj/door)
@@ -367,7 +369,7 @@
  * Gore a mob: brute damage, a guaranteed wound and a trip through the air.
  * Shared by the bull's charge and its regular melee attacks.
  */
-/proc/bull_gore(mob/living/bull, mob/living/victim, damage, fling_range, fling_dir, max_wound_severity = WOUND_SEVERITY_MODERATE, knockdown = 1 SECONDS)
+/proc/bull_gore(mob/living/bull, mob/living/victim, damage, fling_range, fling_dir, max_wound_severity = WOUND_SEVERITY_MODERATE, knockdown = 1 SECONDS, toss_chance = 0)
 	victim.visible_message(
 		span_danger("[bull] gores [victim] and sends [victim.p_them()] flying!"),
 		span_userdanger("[bull] gores you and sends you flying!"),
@@ -385,8 +387,57 @@
 			carbon_victim.cause_wound_of_type_and_severity(pick(WOUND_BLUNT, WOUND_PIERCE), limb, WOUND_SEVERITY_MODERATE, max_wound_severity, WOUND_PICK_LOWEST_SEVERITY, bull)
 
 	victim.Knockdown(knockdown)
-	if(fling_range > 0 && !victim.anchored)
-		victim.throw_at(get_ranged_target_turf(victim, fling_dir, fling_range), fling_range, 3, bull, gentle = FALSE)
+	if(fling_range <= 0 || victim.anchored)
+		return
+	if(prob(toss_chance))
+		bull_toss(bull, victim, fling_dir, fling_range)
+		return
+	victim.throw_at(get_ranged_target_turf(victim, fling_dir, fling_range), fling_range, 3, bull, gentle = FALSE)
+
+/// Mobs currently in the air from a bull toss, associated with the pass flags we gave them
+GLOBAL_LIST_EMPTY(bull_tossed_mobs)
+
+/// How high (in pixels) a tossed mob goes
+#define BULL_TOSS_HEIGHT 28
+
+/**
+ * Toss someone high into the air, doing flips the whole way.
+ * Half the time they go right over the bull's head and land behind it.
+ */
+/proc/bull_toss(mob/living/bull, mob/living/victim, fling_dir, fling_range)
+	var/toss_dir = prob(50) ? REVERSE_DIR(fling_dir) : fling_dir
+	var/toss_range = max(fling_range - 1, 3)
+	victim.visible_message(
+		span_danger("[bull] tosses [victim] high into the air!"),
+		span_userdanger("[bull] tosses you high into the air! WHOA!"),
+	)
+	// Sail over the bull and any tables on the way
+	var/added_pass_flags = (PASSMOB | PASSTABLE) & ~victim.pass_flags
+	victim.pass_flags |= added_pass_flags
+	victim.SpinAnimation(0.3 SECONDS, rand(2, 4))
+	animate(victim, pixel_z = BULL_TOSS_HEIGHT, time = 0.4 SECONDS, easing = SINE_EASING | EASE_OUT, flags = ANIMATION_PARALLEL | ANIMATION_RELATIVE)
+	GLOB.bull_tossed_mobs[victim] = added_pass_flags
+	var/datum/callback/land = CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(bull_toss_land), victim)
+	// Backup in case the throw gets cancelled without landing
+	addtimer(land, 3 SECONDS)
+	victim.throw_at(get_ranged_target_turf(victim, toss_dir, toss_range), toss_range, 1, bull, spin = FALSE, callback = land, gentle = FALSE)
+
+/// Coming back down from a toss
+/proc/bull_toss_land(mob/living/victim)
+	if(!(victim in GLOB.bull_tossed_mobs))
+		return
+	var/added_pass_flags = GLOB.bull_tossed_mobs[victim]
+	GLOB.bull_tossed_mobs -= victim
+	if(QDELETED(victim))
+		return
+	victim.pass_flags &= ~added_pass_flags
+	animate(victim, pixel_z = -BULL_TOSS_HEIGHT, time = 0.15 SECONDS, easing = SINE_EASING | EASE_IN, flags = ANIMATION_PARALLEL | ANIMATION_RELATIVE)
+	victim.visible_message(span_danger("[victim] crashes back down!"), span_userdanger("You crash back down!"))
+	playsound(victim, 'sound/effects/hit_kick.ogg', 60, TRUE)
+	victim.apply_damage(5, BRUTE)
+	victim.Knockdown(1 SECONDS)
+
+#undef BULL_TOSS_HEIGHT
 
 /// How far a door rammed by a bull flies
 #define BULL_DOOR_FLING_RANGE 8
