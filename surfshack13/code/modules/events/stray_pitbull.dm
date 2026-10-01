@@ -4,7 +4,7 @@
 	typepath = /datum/round_event/stray_pitbull
 	weight = 8
 	max_occurrences = 1
-	earliest_start = 5 MINUTES
+	earliest_start = 0
 	category = EVENT_CATEGORY_ENTITIES
 	description = "Cupcake, a tameable but dangerous pitbull, shows up somewhere in maintenance."
 
