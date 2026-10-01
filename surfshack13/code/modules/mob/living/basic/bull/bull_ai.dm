@@ -4,6 +4,10 @@
 #define BB_BULL_RAMPAGING "bb_bull_rampaging"
 /// Whatever we've decided to charge at while rampaging
 #define BB_BULL_RAMPAGE_TARGET "bb_bull_rampage_target"
+/// world.time we're allowed to make our next rampage charge
+#define BB_BULL_NEXT_RAMPAGE_CHARGE "bb_bull_next_rampage_charge"
+/// Direction we're currently ambling in
+#define BB_BULL_WANDER_DIR "bb_bull_wander_dir"
 
 /datum/ai_controller/basic_controller/bull
 	blackboard = list(
@@ -12,11 +16,12 @@
 		BB_TARGET_MINIMUM_STAT = CONSCIOUS,
 		BB_BULL_LAST_TARGET_TIME = 0,
 		BB_BULL_RAMPAGING = FALSE,
+		BB_BULL_NEXT_RAMPAGE_CHARGE = 0,
 	)
 	// Keep thinking even with nobody nearby, so it roams the station on its own
 	can_idle = FALSE
 	ai_movement = /datum/ai_movement/basic_avoidance
-	idle_behavior = /datum/idle_behavior/idle_random_walk
+	idle_behavior = /datum/idle_behavior/idle_random_walk/bull
 	planning_subtrees = list(
 		/datum/ai_planning_subtree/target_retaliate/check_faction,
 		/datum/ai_planning_subtree/simple_find_target,
@@ -58,6 +63,12 @@
 	var/smash_range = 7
 	/// How far a charge in a random direction aims
 	var/wander_range = 12
+	/// Chance to charge off in a random direction when there's nothing to smell or smash, otherwise we just keep wandering
+	var/random_charge_chance = 25
+	/// Shortest wander between rampage charges
+	var/min_charge_gap = 4 SECONDS
+	/// Longest wander between rampage charges
+	var/max_charge_gap = 9 SECONDS
 
 /datum/ai_planning_subtree/bull_rampage/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
 	var/mob/living/bull = controller.pawn
@@ -69,6 +80,8 @@
 		controller.set_blackboard_key(BB_BULL_LAST_TARGET_TIME, world.time)
 		return
 	if(world.time < controller.blackboard[BB_BULL_LAST_TARGET_TIME] + calm_down_time)
+		return
+	if(world.time < controller.blackboard[BB_BULL_NEXT_RAMPAGE_CHARGE])
 		return
 	var/datum/action/cooldown/charge = controller.blackboard[BB_TARGETED_ACTION]
 	if(!charge?.IsAvailable())
@@ -84,9 +97,15 @@
 	if(!rampage_target)
 		rampage_target = find_smashable(bull)
 	if(!rampage_target)
+		if(!prob(random_charge_chance))
+			// Nothing worth charging at, amble around a bit more and check again soon
+			controller.set_blackboard_key(BB_BULL_NEXT_RAMPAGE_CHARGE, world.time + min_charge_gap)
+			return
 		rampage_target = get_ranged_target_turf(bull, pick(GLOB.alldirs), wander_range)
 	if(!rampage_target || get_turf(rampage_target) == get_turf(bull))
 		return
+
+	controller.set_blackboard_key(BB_BULL_NEXT_RAMPAGE_CHARGE, world.time + rand(min_charge_gap, max_charge_gap))
 
 	controller.set_blackboard_key(BB_BULL_RAMPAGE_TARGET, rampage_target)
 	controller.queue_behavior(/datum/ai_behavior/targeted_mob_ability, BB_TARGETED_ACTION, BB_BULL_RAMPAGE_TARGET)
@@ -118,6 +137,30 @@
 		candidates += thing
 	return length(candidates) ? pick(candidates) : null
 
+/// Ambles along in one direction for a while instead of jittering on the spot
+/datum/idle_behavior/idle_random_walk/bull
+	walk_chance = 60
+	/// Chance per step to pick a new direction even if the way is clear
+	var/turn_chance = 15
+
+/datum/idle_behavior/idle_random_walk/bull/perform_idle_behavior(seconds_per_tick, datum/ai_controller/controller)
+	var/mob/living/living_pawn = controller.pawn
+	if(LAZYLEN(living_pawn.do_afters) || !(living_pawn.mobility_flags & MOBILITY_MOVE) || !isturf(living_pawn.loc) || living_pawn.pulledby)
+		return FALSE
+	if(!SPT_PROB(walk_chance, seconds_per_tick))
+		return TRUE
+	var/move_dir = controller.blackboard[BB_BULL_WANDER_DIR]
+	if(!move_dir || prob(turn_chance))
+		move_dir = pick(GLOB.alldirs)
+	var/turf/destination_turf = get_step(living_pawn, move_dir)
+	if(!destination_turf?.can_cross_safely(living_pawn) || !living_pawn.Move(destination_turf, move_dir))
+		// Blocked, try somewhere else next time
+		move_dir = pick(GLOB.alldirs)
+	controller.set_blackboard_key(BB_BULL_WANDER_DIR, move_dir)
+	return TRUE
+
+#undef BB_BULL_NEXT_RAMPAGE_CHARGE
+#undef BB_BULL_WANDER_DIR
 #undef BB_BULL_LAST_TARGET_TIME
 #undef BB_BULL_RAMPAGING
 #undef BB_BULL_RAMPAGE_TARGET
