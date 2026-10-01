@@ -18,7 +18,7 @@
  * - Reinforced/hard walls and anything else it can't break stun the bull instead.
  * - Windows, grilles, tables and the like are just ploughed through.
  * - If nothing gets hit the cooldown is short so the AI simply lines up again.
- * - Anyone wearing or waving red, or covered in blood, makes us see red: the dash itself is faster.
+ * - Anyone wearing or waving red, or covered in blood, makes us see red: a faster dash that goes twice as far.
  */
 /datum/action/cooldown/mob_cooldown/bull_charge
 	name = "Bull Rush"
@@ -63,6 +63,8 @@
 
 	/// Seeing red: multiplier on deciseconds per tile (lower is faster)
 	var/enraged_speed_mult = 0.5
+	/// Seeing red: multiplier on how far we charge
+	var/enraged_range_mult = 2
 
 	/// Sound slot: pawing the ground / snorting during the windup
 	var/windup_sound = 'sound/mobs/non-humanoids/cow/cow.ogg'
@@ -199,8 +201,9 @@
 	playsound(bull, dash_sound, 60, TRUE)
 
 	var/speed = enraged ? charge_speed * enraged_speed_mult : charge_speed
+	var/range = enraged ? charge_range * enraged_range_mult : charge_range
 	// Not homing, so it keeps going in a straight line past the aim turf until the timeout
-	charge_loop = GLOB.move_manager.move_towards(bull, aim_turf, speed, FALSE, (charge_range + max_walls) * speed, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
+	charge_loop = GLOB.move_manager.move_towards(bull, aim_turf, speed, FALSE, (range + max_walls) * speed, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
 	if(!charge_loop)
 		end_charge(BULL_CHARGE_ABORTED)
 		return
