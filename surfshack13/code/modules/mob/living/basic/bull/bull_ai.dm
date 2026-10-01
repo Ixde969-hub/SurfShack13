@@ -8,7 +8,8 @@
 /datum/ai_controller/basic_controller/bull
 	blackboard = list(
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic,
-		BB_TARGET_MINIMUM_STAT = HARD_CRIT,
+		// Once someone is down we move on and look for fresh victims
+		BB_TARGET_MINIMUM_STAT = CONSCIOUS,
 		BB_BULL_LAST_TARGET_TIME = 0,
 		BB_BULL_RAMPAGING = FALSE,
 	)
@@ -18,10 +19,26 @@
 		/datum/ai_planning_subtree/target_retaliate/check_faction,
 		/datum/ai_planning_subtree/simple_find_target,
 		// Charge whenever it's off cooldown; missed charges come back quickly so it just lines up again
-		/datum/ai_planning_subtree/targeted_mob_ability,
+		/datum/ai_planning_subtree/targeted_mob_ability/bull,
 		/datum/ai_planning_subtree/basic_melee_attack_subtree,
 		/datum/ai_planning_subtree/bull_rampage,
 	)
+
+/// Charges at our target, but drops targets that are already down and leaves point blank ones to our horns
+/datum/ai_planning_subtree/targeted_mob_ability/bull
+
+/datum/ai_planning_subtree/targeted_mob_ability/bull/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
+	var/atom/target = controller.blackboard[target_key]
+	if(QDELETED(target))
+		return
+	var/datum/targeting_strategy/targeting = GET_TARGETING_STRATEGY(controller.blackboard[BB_TARGETING_STRATEGY])
+	if(!targeting?.can_attack(controller.pawn, target, controller.blackboard[BB_AGGRO_RANGE] || 9))
+		controller.clear_blackboard_key(target_key)
+		return
+	// Can't charge at something on our own tile, just gore it normally
+	if(get_turf(target) == get_turf(controller.pawn))
+		return
+	return ..()
 
 /**
  * With nobody around to gore for a while the bull gets mad and starts charging on its own:
@@ -80,7 +97,7 @@
 	var/closest_dist = scent_range + 1
 	for(var/mob/living/carbon/human/victim in GLOB.alive_player_list)
 		var/turf/victim_turf = get_turf(victim)
-		if(!victim_turf || victim_turf.z != bull_turf.z || victim.stat >= HARD_CRIT)
+		if(!victim_turf || victim_turf.z != bull_turf.z || victim.stat != CONSCIOUS)
 			continue
 		var/dist = get_dist(bull_turf, victim_turf)
 		if(dist < closest_dist && dist > 0)
