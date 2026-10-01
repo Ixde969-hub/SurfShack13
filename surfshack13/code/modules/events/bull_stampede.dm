@@ -31,11 +31,23 @@
 	spawn_turf = get_safe_random_station_turf(length(hallways) ? hallways : GLOB.the_station_areas)
 
 /datum/round_event/bull_stampede/announce(fake)
-	var/where = spawn_turf ? " in [get_area_name(spawn_turf, format_text = TRUE)]" : ""
+	var/where = spawn_turf ? get_area_name(spawn_turf, format_text = TRUE) : "the hallways"
+	var/bulls = bull_count == 1 ? "One very angry bull is" : "[bull_count] very angry bulls are"
+	var/opener = pick(
+		"Olé? NO. The space spaniard lost his bullfight.",
+		"The space spaniard has lost his bullfight. Badly.",
+		"Bullfight's over. The bull won.",
+		"Bad news from the arena: the space spaniard lost.",
+	)
+	var/closer = pick(
+		"Get out of the hallways. Do NOT wear red.",
+		"Run. Don't wave anything red. Don't be a hero.",
+		"Stay off the hallways and take off anything red. Now.",
+		"Hide. Ditch the red. Pray.",
+	)
 	priority_announce(
-		"The space spaniard has lost his bullfight. [bull_count == 1 ? "An enraged bull is" : "A pack of [bull_count] enraged bulls is"] stampeding through the station[where]. \
-		Crew are advised to stay out of the hallways, keep away from windows and under no circumstances wear red.",
-		"Stampede Alert",
+		"[opener] [bulls] loose in [where]. [closer]",
+		"STAMPEDE!",
 		'sound/mobs/non-humanoids/cow/cow.ogg',
 	)
 
