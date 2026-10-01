@@ -64,6 +64,39 @@
 	var/meat_heal = 30
 	/// Our neck bite ability
 	var/datum/action/cooldown/mob_cooldown/neck_bite/neck_bite
+	/// Stops us from barking over ourselves
+	COOLDOWN_DECLARE(noise_cooldown)
+
+	/// Snarling, angry barks for when we're about to hurt someone
+	var/static/list/aggro_sounds = list(
+		'surfshack13/sound/mobs/cupcake/aggro_bark1.ogg',
+		'surfshack13/sound/mobs/cupcake/aggro_bark2.ogg',
+		'surfshack13/sound/mobs/cupcake/aggro_bark3.ogg',
+		'surfshack13/sound/mobs/cupcake/aggro_bark4.ogg',
+	)
+	/// Low warning growls
+	var/static/list/growl_sounds = list(
+		'surfshack13/sound/mobs/cupcake/growl1.ogg',
+		'surfshack13/sound/mobs/cupcake/growl2.ogg',
+		'surfshack13/sound/mobs/cupcake/growl3.ogg',
+		'surfshack13/sound/mobs/cupcake/growl4.ogg',
+		'surfshack13/sound/mobs/cupcake/growl5.ogg',
+		'sound/mobs/non-humanoids/dog/growl1.ogg',
+		'sound/mobs/non-humanoids/dog/growl2.ogg',
+	)
+	/// Happy barks, for when someone's being nice to us
+	var/static/list/happy_sounds = list(
+		'surfshack13/sound/mobs/cupcake/bark1.ogg',
+		'surfshack13/sound/mobs/cupcake/bark2.ogg',
+	)
+	/// Whimpers
+	var/static/list/whine_sounds = list(
+		'surfshack13/sound/mobs/cupcake/whine1.ogg',
+		'surfshack13/sound/mobs/cupcake/whine2.ogg',
+		'surfshack13/sound/mobs/cupcake/whine3.ogg',
+		'surfshack13/sound/mobs/cupcake/whine4.ogg',
+		'surfshack13/sound/mobs/cupcake/whine5.ogg',
+	)
 
 	/// What we eat, and what tames us
 	var/static/list/food_types = list(
@@ -92,10 +125,24 @@
 
 	RegisterSignal(src, COMSIG_MOB_ATE, PROC_REF(on_ate))
 	RegisterSignal(src, COMSIG_HOSTILE_PRE_ATTACKINGTARGET, PROC_REF(on_pre_attack))
+	RegisterSignal(src, COMSIG_HOSTILE_POST_ATTACKINGTARGET, PROC_REF(on_post_attack))
+	RegisterSignals(src, list(COMSIG_AI_BLACKBOARD_KEY_SET(BB_BASIC_MOB_CURRENT_TARGET), COMSIG_AI_BLACKBOARD_KEY_SET(BB_CURRENT_PET_TARGET)), PROC_REF(on_target_set))
 
 /mob/living/basic/pitbull/Destroy()
 	QDEL_NULL(neck_bite)
 	return ..()
+
+/mob/living/basic/pitbull/death(gibbed)
+	. = ..()
+	make_noise(whine_sounds, volume = 60, force = TRUE)
+
+/// Plays a random sound from the list, unless we made a noise very recently
+/mob/living/basic/pitbull/proc/make_noise(list/sounds, volume = 60, cooldown = 3 SECONDS, force = FALSE)
+	if(!force && !COOLDOWN_FINISHED(src, noise_cooldown))
+		return FALSE
+	COOLDOWN_START(src, noise_cooldown, cooldown)
+	playsound(src, pick(sounds), volume, TRUE)
+	return TRUE
 
 /mob/living/basic/pitbull/proc/make_tameable()
 	AddComponent(/datum/component/tameable/cupcake, food_types = food_types, tame_chance = 20, bonus_tame_chance = 10)
@@ -128,11 +175,17 @@
 	if(!GetComponent(/datum/component/obeys_commands))
 		AddComponent(/datum/component/obeys_commands, pet_commands)
 	ai_controller.ai_traits |= STOP_MOVING_WHEN_PULLED
+	make_noise(happy_sounds, force = TRUE)
 	visible_message(span_notice("[src] wolfs down the meat and starts wagging [p_their()] stumpy tail at [tamer]."))
 
 /mob/living/basic/pitbull/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	. = ..()
-	if(!tamed || stat == DEAD)
+	if(stat == DEAD)
+		return
+	if(!tamed)
+		// wild, growling at anyone who wanders too close
+		if(!feral && SPT_PROB(3, seconds_per_tick) && (locate(/mob/living/carbon/human) in oview(4, src)))
+			make_noise(growl_sounds, volume = 45, cooldown = 8 SECONDS)
 		return
 	var/time_since_fed = world.time - last_fed
 	if(time_since_fed >= feral_time)
@@ -149,7 +202,7 @@
 		growl()
 
 /mob/living/basic/pitbull/proc/growl()
-	playsound(src, pick('sound/mobs/non-humanoids/dog/growl1.ogg', 'sound/mobs/non-humanoids/dog/growl2.ogg'), 50, TRUE)
+	make_noise(growl_sounds, volume = 55, force = TRUE)
 	visible_message(span_warning("[src] growls hungrily, baring [p_their()] teeth."))
 
 /// Feeding us keeps us loyal (and healing is handled by basic_eating)
@@ -161,6 +214,7 @@
 	hunger_warned = FALSE
 	if(feeder)
 		balloon_alert(feeder, "wags tail")
+		make_noise(happy_sounds)
 
 /// Our owners let us starve, time to bite the hand that (didn't) feed us
 /mob/living/basic/pitbull/proc/go_feral()
@@ -189,7 +243,7 @@
 		ai_controller.set_blackboard_key(BB_BASIC_MOB_CURRENT_TARGET, first_victim)
 
 	add_atom_colour("#ffb0b0", FIXED_COLOUR_PRIORITY)
-	playsound(src, 'sound/mobs/non-humanoids/dog/growl2.ogg', 80, TRUE)
+	make_noise(aggro_sounds, volume = 90, force = TRUE)
 	visible_message(span_danger("[src]'s eyes go wild as hunger takes over. [p_They()] [p_are()] feral!"))
 	// she can be won back, if you're brave enough to get close with some meat
 	make_tameable()
@@ -201,6 +255,22 @@
 	ai_controller.clear_blackboard_key(BB_CUPCAKE_FERAL)
 	ai_controller.clear_blackboard_key(BB_BASIC_MOB_RETALIATE_LIST)
 	ai_controller.clear_blackboard_key(BB_BASIC_MOB_CURRENT_TARGET)
+
+/// Snarl when we pick someone to go after
+/mob/living/basic/pitbull/proc/on_target_set(datum/source, key)
+	SIGNAL_HANDLER
+	if(stat == DEAD)
+		return
+	var/atom/target = ai_controller?.blackboard[key]
+	if(!isliving(target) || (target in ai_controller.blackboard[BB_FRIENDS_LIST]))
+		return
+	make_noise(aggro_sounds, volume = 70, cooldown = 4 SECONDS)
+
+/// The odd snarl while mauling someone
+/mob/living/basic/pitbull/proc/on_post_attack(datum/source, atom/target, result)
+	SIGNAL_HANDLER
+	if(isliving(target) && prob(25))
+		make_noise(aggro_sounds, volume = 60, cooldown = 4 SECONDS)
 
 /// The AI goes for the throat whenever the neck bite is ready
 /mob/living/basic/pitbull/proc/on_pre_attack(mob/living/source, atom/target, proximity, modifiers)
@@ -252,6 +322,10 @@
 	owner.face_atom(victim)
 	owner.do_attack_animation(victim, ATTACK_EFFECT_BITE)
 	playsound(owner, 'sound/items/weapons/bite.ogg', 70, TRUE)
+	playsound(owner, 'surfshack13/sound/mobs/cupcake/neck_tear.ogg', 70, TRUE)
+	var/mob/living/basic/pitbull/cupcake = owner
+	if(istype(cupcake))
+		cupcake.make_noise(cupcake.aggro_sounds, volume = 80, force = TRUE)
 	victim.visible_message(
 		span_danger("[owner] lunges at [victim]'s neck and tears into it!"),
 		span_userdanger("[owner] clamps down on your neck and rips it open!"),
