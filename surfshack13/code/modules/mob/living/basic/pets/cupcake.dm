@@ -368,6 +368,7 @@
 	victim.add_traits(list(TRAIT_IMMOBILIZED, TRAIT_HANDS_BLOCKED, TRAIT_INCAPACITATED), REF(src))
 	ADD_TRAIT(src, TRAIT_IMMOBILIZED, REF(src))
 	face_atom(victim)
+	pull_into_jaws(victim)
 	victim.visible_message(span_danger("[src] clamps down on [victim] and starts spinning [victim.p_them()] around!"), \
 		span_userdanger("[src] clamps down on you and starts spinning you around!"), span_hear("You hear snarling and aggressive shuffling!"), null, src)
 	playsound(src, 'sound/items/weapons/bite.ogg', 70, TRUE)
@@ -392,6 +393,7 @@
 		if(next_turf && victim_turf.Exit(victim, get_dir(victim_turf, next_turf)) && next_turf.Enter(victim))
 			victim.forceMove(next_turf)
 			victim.setDir(get_dir(victim, src))
+		pull_into_jaws(victim)
 		sleep(delay)
 
 	if(!can_keep_spinning(victim))
@@ -445,11 +447,20 @@
 	target_bin.visible_message(span_danger("[victim] lands headfirst in [target_bin]!"))
 	playsound(target_bin, 'sound/effects/bang.ogg', 50, TRUE)
 
+/// Shifts the victim's sprite most of the way onto our tile, so it looks like they're actually hanging from our mouth
+/mob/living/basic/pitbull/proc/pull_into_jaws(mob/living/carbon/victim)
+	var/direction = get_dir(victim, src)
+	var/pull = ISDIAGONALDIR(direction) ? 12 : 16
+	var/x_pull = (direction & EAST) ? pull : ((direction & WEST) ? -pull : 0)
+	var/y_pull = (direction & NORTH) ? pull : ((direction & SOUTH) ? -pull : 0)
+	victim.add_offsets(REF(src), x_add = x_pull, y_add = y_pull, animate = FALSE)
+
 /// Let go of whoever we're spinning
 /mob/living/basic/pitbull/proc/reset_spin_victim()
 	REMOVE_TRAIT(src, TRAIT_IMMOBILIZED, REF(src))
 	if(!spin_victim)
 		return
+	spin_victim.remove_offsets(REF(src), animate = FALSE)
 	spin_victim.remove_traits(list(TRAIT_IMMOBILIZED, TRAIT_HANDS_BLOCKED, TRAIT_INCAPACITATED), REF(src))
 	spin_victim = null
 
