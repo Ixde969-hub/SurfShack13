@@ -71,7 +71,7 @@
 	var/enraged_damage_mult = 1.5
 
 	/// Sound slot: pawing the ground / snorting during the windup
-	var/windup_sound = 'sound/mobs/non-humanoids/pony/snort.ogg'
+	var/windup_sound = 'sound/mobs/non-humanoids/cow/cow.ogg'
 	/// Sound slot: furious bellow when we see red
 	var/enraged_sound = 'sound/mobs/non-humanoids/cow/cow.ogg'
 	/// Sound slot: hooves thundering as the dash starts
@@ -167,7 +167,7 @@
 		playsound(bull, enraged_sound, 100, TRUE, frequency = 0.6)
 	else
 		bull.visible_message(span_danger("[bull] paws at the ground and lowers [bull.p_their()] horns!"))
-	playsound(bull, windup_sound, 80, TRUE, frequency = 0.8)
+		playsound(bull, windup_sound, 80, TRUE, frequency = 0.7)
 	bull.Shake(enraged ? 3 : 2, 1, windup)
 	var/obj/effect/temp_visual/decoy/flash = new(bull.loc, bull)
 	animate(flash, alpha = 0, color = COLOR_RED, transform = matrix() * (enraged ? 2 : 1.5), time = windup)
