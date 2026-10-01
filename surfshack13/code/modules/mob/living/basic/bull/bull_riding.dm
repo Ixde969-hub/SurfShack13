@@ -21,7 +21,7 @@
 	/// Stops people spamming mount attempts in one frame
 	COOLDOWN_DECLARE(ride_attempt_cooldown)
 	/// Sound slot: the rider stays on. YEEHAW!
-	var/rodeo_success_sound = 'config/reboot_themes/yeehaw.ogg'
+	var/rodeo_success_sound = 'surfshack13/sound/bull/yeehaw.ogg'
 
 /mob/living/basic/bull/proc/setup_riding()
 	AddElement(/datum/element/ridable, /datum/component/riding/creature/cow/bull)
