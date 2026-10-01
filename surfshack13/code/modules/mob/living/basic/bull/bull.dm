@@ -34,6 +34,10 @@
 	pull_force = MOVE_FORCE_VERY_STRONG
 	blood_volume = BLOOD_VOLUME_NORMAL
 	ai_controller = /datum/ai_controller/basic_controller/bull
+	/// Extra brute damage on top of melee damage when a regular attack gores someone
+	var/gore_damage = 5
+	/// How far regular attacks fling people (a full charge flings further)
+	var/gore_fling_range = 3
 	/// Our charge ability
 	var/datum/action/cooldown/mob_cooldown/bull_charge/charge
 
@@ -44,6 +48,17 @@
 	charge = new(src)
 	charge.Grant(src)
 	ai_controller.set_blackboard_key(BB_TARGETED_ACTION, charge)
+	RegisterSignal(src, COMSIG_HOSTILE_POST_ATTACKINGTARGET, PROC_REF(on_attacked_target))
+
+/// Our regular attacks gore too, just with less oomph than a full charge
+/mob/living/basic/bull/proc/on_attacked_target(mob/living/basic/source, atom/target, success)
+	SIGNAL_HANDLER
+	if(!success || !isliving(target) || target == src)
+		return
+	var/mob/living/victim = target
+	if(victim.stat == DEAD)
+		return
+	INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(bull_gore), src, victim, gore_damage, gore_fling_range, get_dir(src, victim))
 
 /mob/living/basic/bull/Destroy()
 	QDEL_NULL(charge)

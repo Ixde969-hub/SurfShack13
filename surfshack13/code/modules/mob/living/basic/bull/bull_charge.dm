@@ -12,7 +12,8 @@
  *
  * Paws the ground for a windup, locks onto where the target was standing, then barrels in a straight line
  * through that spot until it hits something or runs out of steam.
- * - Mobs get gored, wounded and thrown.
+ * - Mobs get gored, wounded and thrown, even if they're lying down in our path.
+ * - Airlocks, firelocks, windoors and mineral doors get knocked off their frames and sent flying.
  * - Normal walls get smashed through (up to max_walls per charge, the last one only cracks to a girder half the time).
  * - Reinforced/hard walls and anything else it can't break stun the bull instead.
  * - Windows, grilles, tables and the like are just ploughed through.
@@ -40,8 +41,6 @@
 	var/max_walls = 2
 	/// Brute damage dealt to gored mobs
 	var/gore_damage = 25
-	/// Brute damage dealt to mobs we trample over while they're lying down
-	var/trample_damage = 10
 	/// How far gored mobs get thrown
 	var/throw_range = 6
 	/// How long gored mobs stay down
@@ -69,8 +68,6 @@
 	var/charge_dir
 	/// Walls broken this charge
 	var/walls_smashed = 0
-	/// Mobs we already trampled this charge
-	var/list/trampled
 	/// Timers for windup stages, so we can cancel them
 	var/list/windup_timers
 
@@ -84,7 +81,13 @@
 		/obj/structure/barricade,
 		/obj/structure/door_assembly,
 		/obj/structure/windoor_assembly,
+	))
+	/// Doors we knock clean off their frames
+	var/static/list/flingable_doors = typecacheof(list(
+		/obj/machinery/door/airlock,
+		/obj/machinery/door/firedoor,
 		/obj/machinery/door/window,
+		/obj/structure/mineral_door,
 	))
 
 /datum/action/cooldown/mob_cooldown/bull_charge/Destroy()
@@ -110,7 +113,6 @@
 	var/mob/living/bull = owner
 	charging = TRUE
 	walls_smashed = 0
-	trampled = list()
 	target_ref = WEAKREF(target)
 	aim_turf = target_turf
 	// Hold the cooldown (and melee) until the charge is over
@@ -190,14 +192,12 @@
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/on_moved(atom/source, atom/old_loc, dir, forced)
 	SIGNAL_HANDLER
 	new /obj/effect/temp_visual/decoy/fading(old_loc, source)
-	// Anyone lying in our path gets run over
+	// Lying down won't save you, we scoop up anyone in our path
 	for(var/mob/living/victim in get_turf(source))
-		if(victim == source || (victim in trampled) || victim.body_position != LYING_DOWN)
+		if(victim == source || victim.body_position != LYING_DOWN)
 			continue
-		trampled += victim
-		victim.visible_message(span_danger("[source] tramples [victim]!"), span_userdanger("[source] tramples right over you!"))
-		victim.apply_damage(trample_damage, BRUTE, wound_bonus = CANT_WOUND)
-		playsound(victim, 'sound/effects/hit_kick.ogg', 50, TRUE)
+		INVOKE_ASYNC(src, PROC_REF(gore), victim)
+		return
 
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/on_bump(atom/movable/source, atom/bumped)
 	SIGNAL_HANDLER
@@ -252,6 +252,9 @@
 	if(!isobj(bumped))
 		return
 	var/obj/thing = bumped
+	if(is_type_in_typecache(thing, flingable_doors) && thing.density && !(thing.resistance_flags & INDESTRUCTIBLE))
+		fling_door(thing)
+		return
 	if(is_type_in_typecache(thing, fragile_types))
 		thing.take_damage(fragile_damage, BRUTE, MELEE, TRUE, get_dir(thing, bull))
 		if(QDELETED(thing) || !thing.density)
@@ -271,30 +274,30 @@
 
 /// Gore a mob, wound them and send them flying
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/gore(mob/living/victim)
+	if(!charging)
+		return
 	var/mob/living/bull = owner
 	end_charge(BULL_CHARGE_HIT_MOB)
 	if(victim.check_block(bull, gore_damage, "the charging [bull.name]", attack_type = LEAP_ATTACK))
 		victim.Knockdown(gore_knockdown * 0.5)
 		recoil(null)
 		return
+	bull_gore(bull, victim, gore_damage, throw_range, charge_dir, WOUND_SEVERITY_SEVERE, gore_knockdown)
 
-	victim.visible_message(
-		span_danger("[bull] gores [victim] and sends [victim.p_them()] flying!"),
-		span_userdanger("[bull] gores you and sends you flying!"),
+/// Knock a door clean off its frame and send it flying ahead of us
+/datum/action/cooldown/mob_cooldown/bull_charge/proc/fling_door(obj/door)
+	var/mob/living/bull = owner
+	var/turf/door_turf = get_turf(door)
+	bull.visible_message(
+		span_danger("[bull] rams [door] clean off its frame!"),
+		blind_message = span_hear("You hear a deafening crash!"),
 	)
-	playsound(victim, 'sound/effects/meteorimpact.ogg', 100, TRUE)
-	shake_camera(victim, 4, 3)
-
-	var/zone = pick(BODY_ZONE_CHEST, BODY_ZONE_CHEST, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM)
-	victim.apply_damage(gore_damage, BRUTE, zone, wound_bonus = 10, bare_wound_bonus = 15, sharpness = SHARP_POINTY)
-	if(iscarbon(victim))
-		var/mob/living/carbon/carbon_victim = victim
-		var/obj/item/bodypart/limb = carbon_victim.get_bodypart(zone) || carbon_victim.get_bodypart(BODY_ZONE_CHEST)
-		if(limb)
-			carbon_victim.cause_wound_of_type_and_severity(pick(WOUND_BLUNT, WOUND_PIERCE), limb, WOUND_SEVERITY_MODERATE, WOUND_SEVERITY_SEVERE, WOUND_PICK_LOWEST_SEVERITY, bull)
-
-	victim.Knockdown(gore_knockdown)
-	victim.throw_at(get_ranged_target_turf(victim, charge_dir, throw_range), throw_range, 3, bull, gentle = FALSE)
+	playsound(door_turf, 'sound/effects/meteorimpact.ogg', 80, TRUE)
+	playsound(door_turf, 'sound/effects/bang.ogg', 80, TRUE)
+	log_combat(bull, door, "rammed off its frame")
+	var/obj/structure/bull_flung_door/flying_door = new(door_turf, door)
+	qdel(door)
+	flying_door.launch(charge_dir)
 
 /// We hit something we can't get through, ouch
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/recoil(atom/obstacle, stun = recoil_stun)
@@ -326,7 +329,6 @@
 	windup_timers = null
 	target_ref = null
 	aim_turf = null
-	trampled = null
 	if(owner)
 		UnregisterSignal(owner, list(COMSIG_MOVABLE_PRE_MOVE, COMSIG_MOVABLE_BUMP, COMSIG_MOVABLE_MOVED, COMSIG_LIVING_DEATH))
 	if(charge_loop)
@@ -343,6 +345,104 @@
 	else
 		StartCooldown(cooldown_time, 0)
 	SEND_SIGNAL(owner, COMSIG_FINISHED_CHARGE)
+
+/**
+ * Gore a mob: brute damage, a guaranteed wound and a trip through the air.
+ * Shared by the bull's charge and its regular melee attacks.
+ */
+/proc/bull_gore(mob/living/bull, mob/living/victim, damage, fling_range, fling_dir, max_wound_severity = WOUND_SEVERITY_MODERATE, knockdown = 1 SECONDS)
+	victim.visible_message(
+		span_danger("[bull] gores [victim] and sends [victim.p_them()] flying!"),
+		span_userdanger("[bull] gores you and sends you flying!"),
+	)
+	playsound(victim, 'sound/effects/meteorimpact.ogg', 100, TRUE)
+	shake_camera(victim, 4, 3)
+
+	var/zone = pick(BODY_ZONE_CHEST, BODY_ZONE_CHEST, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM)
+	if(damage > 0)
+		victim.apply_damage(damage, BRUTE, zone, wound_bonus = 10, bare_wound_bonus = 15, sharpness = SHARP_POINTY)
+	if(iscarbon(victim))
+		var/mob/living/carbon/carbon_victim = victim
+		var/obj/item/bodypart/limb = carbon_victim.get_bodypart(zone) || carbon_victim.get_bodypart(BODY_ZONE_CHEST)
+		if(limb)
+			carbon_victim.cause_wound_of_type_and_severity(pick(WOUND_BLUNT, WOUND_PIERCE), limb, WOUND_SEVERITY_MODERATE, max_wound_severity, WOUND_PICK_LOWEST_SEVERITY, bull)
+
+	victim.Knockdown(knockdown)
+	if(fling_range > 0 && !victim.anchored)
+		victim.throw_at(get_ranged_target_turf(victim, fling_dir, fling_range), fling_range, 3, bull, gentle = FALSE)
+
+/// How far a door rammed by a bull flies
+#define BULL_DOOR_FLING_RANGE 8
+/// Damage a flying door does to whoever it lands on
+#define BULL_DOOR_CRUSH_DAMAGE 40
+/// Chance the flying door crits whoever it lands on
+#define BULL_DOOR_CRIT_CHANCE 10
+/// How long whoever the door lands on stays down
+#define BULL_DOOR_PARALYZE (3 SECONDS)
+
+/**
+ * A door a bull rammed off its frame. Flies through the air and crushes whoever it hits like a falling vending machine,
+ * then stays where it crashed down as a solid obstacle until it's broken apart.
+ * Same idea as the chicken mask's door kick.
+ */
+/obj/structure/bull_flung_door
+	name = "rammed-in door"
+	desc = "Something big rammed this clean off its frame. It's wedged in the way; you'll have to break it apart to get past."
+	density = TRUE
+	anchored = FALSE
+	max_integrity = 150
+	/// Direction we were flung in
+	var/fling_dir
+	/// Have we hit someone or landed yet?
+	var/landed = FALSE
+
+/obj/structure/bull_flung_door/Initialize(mapload, obj/door)
+	. = ..()
+	if(door)
+		appearance = door.appearance
+		name = "rammed-in [door.name]"
+		desc = initial(desc)
+		density = TRUE
+		layer = ABOVE_MOB_LAYER
+	RegisterSignal(src, COMSIG_MOVABLE_THROW_LANDED, PROC_REF(on_landed))
+
+/obj/structure/bull_flung_door/proc/launch(direction)
+	fling_dir = direction
+	var/turf/target = get_ranged_target_turf(src, direction, BULL_DOOR_FLING_RANGE)
+	throw_at(target, BULL_DOOR_FLING_RANGE, 3, spin = FALSE)
+
+/obj/structure/bull_flung_door/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
+	. = ..()
+	if(landed || !isliving(hit_atom))
+		return
+	landed = TRUE
+	fall_and_crush(get_turf(hit_atom), BULL_DOOR_CRUSH_DAMAGE, BULL_DOOR_CRIT_CHANCE, null, BULL_DOOR_PARALYZE, fling_dir)
+	lie_flat(FALSE)
+
+/// Flew its full distance, or hit a wall
+/obj/structure/bull_flung_door/proc/on_landed(datum/source, atom/movable/thrown_object, datum/thrownthing/throwingdatum)
+	SIGNAL_HANDLER
+	if(landed)
+		return
+	landed = TRUE
+	playsound(src, 'sound/effects/bang.ogg', 60, TRUE)
+	lie_flat(TRUE)
+
+/// Crashes down where it landed, still blocking the way until someone breaks it apart
+/obj/structure/bull_flung_door/proc/lie_flat(rotate = TRUE)
+	density = TRUE
+	anchored = TRUE
+	layer = ABOVE_OBJ_LAYER
+	if(rotate)
+		transform = turn(transform, pick(90, 270))
+
+/obj/structure/bull_flung_door/atom_deconstruct(disassembled = TRUE)
+	new /obj/item/stack/sheet/iron(drop_location(), 2)
+
+#undef BULL_DOOR_FLING_RANGE
+#undef BULL_DOOR_CRUSH_DAMAGE
+#undef BULL_DOOR_CRIT_CHANCE
+#undef BULL_DOOR_PARALYZE
 
 /obj/effect/temp_visual/telegraphing/bull_charge
 	icon = 'icons/mob/telegraphing/telegraph.dmi'
