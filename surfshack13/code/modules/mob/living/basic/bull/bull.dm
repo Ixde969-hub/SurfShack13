@@ -68,3 +68,9 @@
 /mob/living/basic/bull/Destroy()
 	QDEL_NULL(charge)
 	return ..()
+
+/// Bulls show up under NPCs in the ghost orbit menu, so ghosts can watch the carnage
+/datum/orbit_menu/validate_mob_poi(datum/point_of_interest/mob_poi/potential_poi)
+	if(istype(potential_poi.target, /mob/living/basic/bull))
+		return potential_poi.validate()
+	return ..()

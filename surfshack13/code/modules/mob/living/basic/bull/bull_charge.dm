@@ -275,6 +275,7 @@
 		bull.visible_message(span_danger("[bull] gores [tank] wide open!"))
 		log_combat(bull, tank, "gored open")
 		tank.boom()
+		stagger_from_blast()
 		return
 	// Gas canisters rupture with a bang and dump everything inside
 	if(istype(thing, /obj/machinery/portable_atmospherics/canister) && !(thing.resistance_flags & INDESTRUCTIBLE))
@@ -283,6 +284,7 @@
 		log_combat(bull, canister, "blew apart")
 		canister.canister_break()
 		explosion(canister, light_impact_range = 1, flash_range = 2, explosion_cause = bull)
+		stagger_from_blast()
 		return
 	if(is_type_in_typecache(thing, flingable_doors) && thing.density && !(thing.resistance_flags & INDESTRUCTIBLE))
 		fling_door(thing)
@@ -330,6 +332,13 @@
 	var/obj/structure/bull_flung_door/flying_door = new(door_turf, door)
 	qdel(door)
 	flying_door.launch(charge_dir)
+
+/// Something just blew up in our face, that's the end of this charge
+/datum/action/cooldown/mob_cooldown/bull_charge/proc/stagger_from_blast()
+	if(QDELETED(owner) || owner.stat == DEAD)
+		return
+	owner.visible_message(span_danger("[owner] staggers out of the blast, dazed!"))
+	recoil(null)
 
 /// We hit something we can't get through, ouch
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/recoil(atom/obstacle, stun = recoil_stun)
