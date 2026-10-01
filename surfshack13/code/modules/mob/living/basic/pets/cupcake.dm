@@ -135,6 +135,7 @@
 	RegisterSignal(src, COMSIG_HOSTILE_PRE_ATTACKINGTARGET, PROC_REF(on_pre_attack))
 	RegisterSignal(src, COMSIG_HOSTILE_POST_ATTACKINGTARGET, PROC_REF(on_post_attack))
 	RegisterSignals(src, list(COMSIG_AI_BLACKBOARD_KEY_SET(BB_BASIC_MOB_CURRENT_TARGET), COMSIG_AI_BLACKBOARD_KEY_SET(BB_CURRENT_PET_TARGET)), PROC_REF(on_target_set))
+	RegisterSignals(src, list(COMSIG_AI_BLACKBOARD_KEY_CLEARED(BB_BASIC_MOB_CURRENT_TARGET), COMSIG_AI_BLACKBOARD_KEY_CLEARED(BB_CURRENT_PET_TARGET)), PROC_REF(on_target_cleared))
 
 /mob/living/basic/pitbull/Destroy()
 	reset_spin_victim()
@@ -144,6 +145,7 @@
 /mob/living/basic/pitbull/death(gibbed)
 	. = ..()
 	reset_spin_victim()
+	remove_movespeed_modifier(/datum/movespeed_modifier/cupcake_dwarf_hunt)
 	make_noise(whine_sounds, volume = 60, force = TRUE)
 
 /// Plays a random sound from the list, unless we made a noise very recently
@@ -274,10 +276,38 @@
 	SIGNAL_HANDLER
 	if(stat == DEAD)
 		return
+	update_hunt_speed()
 	var/atom/target = ai_controller?.blackboard[key]
 	if(!isliving(target) || (target in ai_controller.blackboard[BB_FRIENDS_LIST]))
 		return
 	make_noise(aggro_sounds, volume = 70, cooldown = 4 SECONDS)
+
+/mob/living/basic/pitbull/proc/on_target_cleared(datum/source, key)
+	SIGNAL_HANDLER
+	update_hunt_speed()
+
+/// Is this someone we'd love to chase down?
+/mob/living/basic/pitbull/proc/is_dwarf_prey(atom/target)
+	if(!isliving(target) || !HAS_TRAIT(target, TRAIT_DWARF))
+		return FALSE
+	var/mob/living/living_target = target
+	if(living_target.stat == DEAD || (living_target in ai_controller?.blackboard[BB_FRIENDS_LIST]))
+		return FALSE
+	return TRUE
+
+/// Put on a burst of speed while we're chasing a dwarf
+/mob/living/basic/pitbull/proc/update_hunt_speed()
+	if(stat != DEAD && (is_dwarf_prey(ai_controller?.blackboard[BB_BASIC_MOB_CURRENT_TARGET]) || is_dwarf_prey(ai_controller?.blackboard[BB_CURRENT_PET_TARGET])))
+		add_movespeed_modifier(/datum/movespeed_modifier/cupcake_dwarf_hunt)
+	else
+		remove_movespeed_modifier(/datum/movespeed_modifier/cupcake_dwarf_hunt)
+
+/// We've laid eyes on a dwarf, everyone should know about it
+/mob/living/basic/pitbull/proc/spotted_dwarf(mob/living/dwarf)
+	visible_message(span_bolddanger("[src]'s ears shoot up as [p_they()] lock[p_s()] eyes on [dwarf]. Little prey spotted!"), \
+		blind_message = span_hear("You hear furious barking."), ignored_mobs = dwarf)
+	to_chat(dwarf, span_userdanger("[src] has spotted you, and [p_they()] [p_are()] coming for you fast!"))
+	make_noise(aggro_sounds, volume = 90, force = TRUE)
 
 /// The odd snarl while mauling someone
 /mob/living/basic/pitbull/proc/on_post_attack(datum/source, atom/target, result)
@@ -466,6 +496,7 @@
 	idle_behavior = /datum/idle_behavior/idle_random_walk
 	planning_subtrees = list(
 		/datum/ai_planning_subtree/pet_planning,
+		/datum/ai_planning_subtree/hunt_dwarfs,
 		/datum/ai_planning_subtree/target_retaliate/prefer_dwarfs,
 		/datum/ai_planning_subtree/find_target_prioritize_traits/cupcake_feral,
 		/datum/ai_planning_subtree/attack_obstacle_in_path,
@@ -479,6 +510,45 @@
 	if(!controller.blackboard[BB_CUPCAKE_FERAL])
 		return
 	return ..()
+
+/// Goes for any dwarf she can see, even when nobody has provoked her
+/datum/ai_planning_subtree/hunt_dwarfs
+
+/datum/ai_planning_subtree/hunt_dwarfs/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
+	controller.queue_behavior(/datum/ai_behavior/hunt_dwarfs, BB_BASIC_MOB_CURRENT_TARGET, BB_TARGETING_STRATEGY)
+
+/datum/ai_behavior/hunt_dwarfs
+	action_cooldown = 2 SECONDS
+	/// How far away we can spot a dwarf
+	var/vision_range = 9
+
+/datum/ai_behavior/hunt_dwarfs/perform(seconds_per_tick, datum/ai_controller/controller, target_key, targeting_strategy_key)
+	var/mob/living/living_pawn = controller.pawn
+	var/datum/targeting_strategy/targeting_strategy = GET_TARGETING_STRATEGY(controller.blackboard[targeting_strategy_key])
+	if(!targeting_strategy)
+		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
+
+	// already chasing one down
+	var/atom/current_target = controller.blackboard[target_key]
+	if(isliving(current_target) && HAS_TRAIT(current_target, TRAIT_DWARF) && targeting_strategy.can_attack(living_pawn, current_target, vision_range))
+		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED
+
+	var/mob/living/closest_dwarf
+	for(var/mob/living/potential_dwarf in oview(vision_range, living_pawn))
+		if(!HAS_TRAIT(potential_dwarf, TRAIT_DWARF) || !targeting_strategy.can_attack(living_pawn, potential_dwarf, vision_range))
+			continue
+		if(isnull(closest_dwarf) || get_dist(living_pawn, potential_dwarf) < get_dist(living_pawn, closest_dwarf))
+			closest_dwarf = potential_dwarf
+	if(isnull(closest_dwarf))
+		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
+
+	// on the shitlist so retaliation keeps us locked onto them
+	controller.insert_blackboard_key_lazylist(BB_BASIC_MOB_RETALIATE_LIST, closest_dwarf)
+	controller.set_blackboard_key(target_key, closest_dwarf)
+	var/mob/living/basic/pitbull/cupcake = living_pawn
+	if(istype(cupcake))
+		cupcake.spotted_dwarf(closest_dwarf)
+	return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED
 
 /// Fights back against whoever hurt us, dwarfs first
 /datum/ai_planning_subtree/target_retaliate/prefer_dwarfs
@@ -523,6 +593,9 @@
 		parent.balloon_alert_to_viewers("shakes head!")
 		return FALSE
 	return ..()
+
+/datum/movespeed_modifier/cupcake_dwarf_hunt
+	multiplicative_slowdown = -0.6
 
 #undef BB_CUPCAKE_FERAL
 #undef SPIN_STEPS
