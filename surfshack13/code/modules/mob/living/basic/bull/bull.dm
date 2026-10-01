@@ -40,6 +40,8 @@
 	var/gore_fling_range = 3
 	/// Chance a regular attack tosses its victim high into the air
 	var/gore_toss_chance = 15
+	/// Chance a regular attack gives a wound
+	var/gore_wound_chance = 20
 	/// Our charge ability
 	var/datum/action/cooldown/mob_cooldown/bull_charge/charge
 
@@ -61,7 +63,7 @@
 	var/mob/living/victim = target
 	if(victim.stat == DEAD)
 		return
-	INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(bull_gore), src, victim, gore_damage, gore_fling_range, get_dir(src, victim), WOUND_SEVERITY_MODERATE, 1 SECONDS, gore_toss_chance)
+	INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(bull_gore), src, victim, gore_damage, gore_fling_range, get_dir(src, victim), WOUND_SEVERITY_MODERATE, 1 SECONDS, gore_toss_chance, gore_wound_chance)
 
 /mob/living/basic/bull/Destroy()
 	QDEL_NULL(charge)

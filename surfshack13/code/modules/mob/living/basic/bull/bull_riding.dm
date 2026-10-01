@@ -69,7 +69,7 @@
 	SetKnockdown(0)
 	if(!charge?.instant_charge(cowboy))
 		// Couldn't line up a charge somehow, gore them anyway
-		bull_gore(src, cowboy, charge?.gore_damage || 25, charge?.throw_range || 6, get_dir(src, cowboy), WOUND_SEVERITY_SEVERE, 2 SECONDS, 50)
+		bull_gore(src, cowboy, charge?.gore_damage || 25, charge?.throw_range || 6, get_dir(src, cowboy), WOUND_SEVERITY_SEVERE, 2 SECONDS, 50, 50)
 
 /mob/living/basic/bull/proc/on_mounted(datum/source, mob/living/rider, force)
 	SIGNAL_HANDLER

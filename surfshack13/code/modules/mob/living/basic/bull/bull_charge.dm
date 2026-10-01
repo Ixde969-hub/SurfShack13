@@ -47,6 +47,8 @@
 	var/gore_knockdown = 2 SECONDS
 	/// Chance a charge tosses its victim high into the air instead of just flinging them
 	var/toss_chance = 35
+	/// Chance a charge gives its victim a wound
+	var/wound_chance = 50
 	/// Damage dealt to fragile structures (windows, grilles, tables...) we plough through
 	var/fragile_damage = 400
 	/// Damage dealt to other dense objects we slam into (airlocks, machines...)
@@ -297,7 +299,7 @@
 		victim.Knockdown(gore_knockdown * 0.5)
 		recoil(null)
 		return
-	bull_gore(bull, victim, gore_damage, throw_range, charge_dir, WOUND_SEVERITY_SEVERE, gore_knockdown, toss_chance)
+	bull_gore(bull, victim, gore_damage, throw_range, charge_dir, WOUND_SEVERITY_SEVERE, gore_knockdown, toss_chance, wound_chance)
 
 /// Knock a door clean off its frame and send it flying ahead of us
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/fling_door(obj/door)
@@ -366,10 +368,10 @@
 	SEND_SIGNAL(owner, COMSIG_FINISHED_CHARGE)
 
 /**
- * Gore a mob: brute damage, a guaranteed wound and a trip through the air.
+ * Gore a mob: brute damage, maybe a wound, and a trip through the air.
  * Shared by the bull's charge and its regular melee attacks.
  */
-/proc/bull_gore(mob/living/bull, mob/living/victim, damage, fling_range, fling_dir, max_wound_severity = WOUND_SEVERITY_MODERATE, knockdown = 1 SECONDS, toss_chance = 0)
+/proc/bull_gore(mob/living/bull, mob/living/victim, damage, fling_range, fling_dir, max_wound_severity = WOUND_SEVERITY_MODERATE, knockdown = 1 SECONDS, toss_chance = 0, wound_chance = 0)
 	victim.visible_message(
 		span_danger("[bull] gores [victim] and sends [victim.p_them()] flying!"),
 		span_userdanger("[bull] gores you and sends you flying!"),
@@ -379,8 +381,8 @@
 
 	var/zone = pick(BODY_ZONE_CHEST, BODY_ZONE_CHEST, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM)
 	if(damage > 0)
-		victim.apply_damage(damage, BRUTE, zone, wound_bonus = 10, bare_wound_bonus = 15, sharpness = SHARP_POINTY)
-	if(iscarbon(victim))
+		victim.apply_damage(damage, BRUTE, zone, wound_bonus = 0, bare_wound_bonus = 5, sharpness = SHARP_POINTY)
+	if(iscarbon(victim) && prob(wound_chance))
 		var/mob/living/carbon/carbon_victim = victim
 		var/obj/item/bodypart/limb = carbon_victim.get_bodypart(zone) || carbon_victim.get_bodypart(BODY_ZONE_CHEST)
 		if(limb)
