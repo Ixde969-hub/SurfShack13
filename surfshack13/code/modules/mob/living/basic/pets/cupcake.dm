@@ -304,7 +304,7 @@
 
 /// We've laid eyes on a dwarf, everyone should know about it
 /mob/living/basic/pitbull/proc/spotted_dwarf(mob/living/dwarf)
-	visible_message(span_bolddanger("[src]'s ears shoot up as [p_they()] lock[p_s()] eyes on [dwarf]. Midget spotted!"), \
+	visible_message(span_big(span_bolddanger("[src]'s ears shoot up as [p_they()] lock[p_s()] eyes on [dwarf]. Midget spotted!")), \
 		blind_message = span_hear("You hear furious barking."), ignored_mobs = dwarf)
 	to_chat(dwarf, span_userdanger("[src] has spotted you, and [p_they()] [p_are()] coming for you fast!"))
 	make_noise(aggro_sounds, volume = 90, force = TRUE)
