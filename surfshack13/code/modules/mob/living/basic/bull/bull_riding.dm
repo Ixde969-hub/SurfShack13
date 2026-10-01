@@ -20,6 +20,8 @@
 	))
 	/// Stops people spamming mount attempts in one frame
 	COOLDOWN_DECLARE(ride_attempt_cooldown)
+	/// Sound slot: the rider stays on. YEEHAW!
+	var/rodeo_success_sound = 'config/reboot_themes/yeehaw.ogg'
 
 /mob/living/basic/bull/proc/setup_riding()
 	AddElement(/datum/element/ridable, /datum/component/riding/creature/cow/bull)
@@ -54,8 +56,8 @@
 	if(prob(BULL_RIDE_CHANCE))
 		if(!buckle_mob(cowboy, check_loc = FALSE))
 			return
-		playsound(src, 'sound/mobs/non-humanoids/cow/cow.ogg', 80, TRUE, frequency = 0.7)
-		visible_message(span_notice("[src] bucks wildly, but [cowboy] holds on! YEEHAW!"))
+		playsound(src, rodeo_success_sound, 100, FALSE)
+		visible_message(span_big(span_boldnotice("[src] bucks wildly, but [cowboy] holds on! YEEHAW!")))
 		to_chat(cowboy, span_boldnotice("You've tamed [src]! Steer with your movement keys, right click to charge."))
 		return
 
