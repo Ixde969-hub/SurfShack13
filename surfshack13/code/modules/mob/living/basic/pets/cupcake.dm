@@ -72,6 +72,8 @@
 	COOLDOWN_DECLARE(spin_cooldown)
 	/// How long between spins
 	var/spin_cooldown_time = 15 SECONDS
+	/// How far we can throw someone after spinning them
+	var/spin_throw_range = 7
 	/// Whoever we currently have clamped in our jaws and are spinning around
 	var/mob/living/carbon/spin_victim
 
@@ -397,13 +399,51 @@
 		return
 	reset_spin_victim()
 	victim.forceMove(loc) // same trick as the wrestling throw, stops people getting thrown through walls
-	victim.visible_message(span_danger("[src] lets go and sends [victim] flying!"), \
-		span_userdanger("[src] lets go and sends you flying!"), span_hear("You hear a snarl and a loud thud!"), null, src)
-	playsound(src, SFX_SWING_HIT, 50, TRUE)
-	var/turf/throw_target = get_edge_target_turf(src, dir)
+	// aim for something nasty to land in: vending machines first, then disposal chutes, otherwise just as far as possible
+	var/atom/throw_target = find_throw_target()
+	var/obj/machinery/disposal/bin/target_bin = istype(throw_target, /obj/machinery/disposal/bin) ? throw_target : null
 	if(throw_target)
-		victim.throw_at(throw_target, 7, 4, src, TRUE, TRUE, callback = CALLBACK(victim, TYPE_PROC_REF(/mob/living, Paralyze), 2 SECONDS))
+		setDir(get_dir(src, throw_target))
+		victim.visible_message(span_danger("[src] lets go and hurls [victim] straight at [throw_target]!"), \
+			span_userdanger("[src] lets go and hurls you straight at [throw_target]!"), span_hear("You hear a snarl and a loud thud!"), null, src)
+	else
+		throw_target = get_edge_target_turf(src, dir)
+		victim.visible_message(span_danger("[src] lets go and sends [victim] flying!"), \
+			span_userdanger("[src] lets go and sends you flying!"), span_hear("You hear a snarl and a loud thud!"), null, src)
+	playsound(src, SFX_SWING_HIT, 50, TRUE)
+	if(throw_target)
+		victim.throw_at(throw_target, spin_throw_range, 4, src, TRUE, TRUE, callback = CALLBACK(src, PROC_REF(on_spin_throw_landed), victim, target_bin))
 	log_combat(src, victim, "spun around and threw")
+
+/// Picks something to throw our victim into. Vending machines are priority one, disposal chutes priority two.
+/mob/living/basic/pitbull/proc/find_throw_target()
+	var/obj/machinery/vending/best_vendor
+	var/obj/machinery/disposal/bin/best_bin
+	for(var/obj/machinery/machine in view(spin_throw_range, src))
+		var/distance = get_dist(src, machine)
+		if(distance < 2) // too close to get any real momentum
+			continue
+		if(istype(machine, /obj/machinery/vending))
+			var/obj/machinery/vending/vendor = machine
+			// prefer ones still standing so they can topple onto the victim
+			if(isnull(best_vendor) || (best_vendor.tilted && !vendor.tilted) || (best_vendor.tilted == vendor.tilted && distance < get_dist(src, best_vendor)))
+				best_vendor = vendor
+		else if(istype(machine, /obj/machinery/disposal/bin) && !(machine.machine_stat & BROKEN))
+			if(isnull(best_bin) || distance < get_dist(src, best_bin))
+				best_bin = machine
+	return best_vendor || best_bin
+
+/// The victim has landed, stun them, and if we were aiming for a disposal chute, in they go
+/mob/living/basic/pitbull/proc/on_spin_throw_landed(mob/living/carbon/victim, obj/machinery/disposal/bin/target_bin)
+	if(QDELETED(victim))
+		return
+	victim.Paralyze(2 SECONDS)
+	if(QDELETED(target_bin) || (target_bin.machine_stat & BROKEN) || victim.buckled || get_dist(victim, target_bin) > 1)
+		return
+	victim.forceMove(target_bin)
+	target_bin.update_appearance()
+	target_bin.visible_message(span_danger("[victim] lands headfirst in [target_bin]!"))
+	playsound(target_bin, 'sound/effects/bang.ogg', 50, TRUE)
 
 /// Let go of whoever we're spinning
 /mob/living/basic/pitbull/proc/reset_spin_victim()
