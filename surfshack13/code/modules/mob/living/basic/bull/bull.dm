@@ -76,3 +76,14 @@
 	if(istype(potential_poi.target, /mob/living/basic/bull))
 		return potential_poi.validate()
 	return ..()
+
+/// One very angry bull in a reinforced critter crate. Whoever opens it had better be fast.
+/datum/supply_pack/critter/bull
+	name = "Bull Crate"
+	desc = "One prize fighting bull, freshly retired from the space spaniard's arena. \
+		Shipped sedated in a reinforced crate; the sedative wears off the moment the lid opens. \
+		Nanotrasen accepts no liability for damage to the station, the crew, or anything red."
+	cost = CARGO_CRATE_VALUE * 100
+	contains = list(/mob/living/basic/bull)
+	crate_name = "bull crate"
+	discountable = SUPPLY_PACK_RARE_DISCOUNTABLE
