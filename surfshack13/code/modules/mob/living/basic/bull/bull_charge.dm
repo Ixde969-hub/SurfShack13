@@ -104,6 +104,13 @@
 	return ..()
 
 /datum/action/cooldown/mob_cooldown/bull_charge/Activate(atom/target)
+	return start_charge(target, with_windup = TRUE)
+
+/// Charge right now, no pawing at the ground and no warning
+/datum/action/cooldown/mob_cooldown/bull_charge/proc/instant_charge(atom/target)
+	return start_charge(target, with_windup = FALSE)
+
+/datum/action/cooldown/mob_cooldown/bull_charge/proc/start_charge(atom/target, with_windup = TRUE)
 	if(charging || !isliving(owner))
 		return FALSE
 	var/turf/target_turf = get_turf(target)
@@ -120,6 +127,10 @@
 
 	RegisterSignal(bull, COMSIG_MOVABLE_PRE_MOVE, PROC_REF(on_pre_move))
 	RegisterSignal(bull, COMSIG_LIVING_DEATH, PROC_REF(abort_charge))
+
+	if(!with_windup)
+		begin_dash()
+		return TRUE
 
 	bull.face_atom(target)
 	bull.visible_message(span_danger("[bull] paws at the ground and lowers [bull.p_their()] horns!"))
@@ -194,7 +205,7 @@
 	new /obj/effect/temp_visual/decoy/fading(old_loc, source)
 	// Lying down won't save you, we scoop up anyone in our path
 	for(var/mob/living/victim in get_turf(source))
-		if(victim == source || victim.body_position != LYING_DOWN)
+		if(victim == source || victim.buckled == source || victim.body_position != LYING_DOWN)
 			continue
 		INVOKE_ASYNC(src, PROC_REF(gore), victim)
 		return
@@ -313,6 +324,10 @@
 	bull.apply_damage(recoil_damage, BRUTE)
 	bull.Stun(stun, ignore_canstun = TRUE)
 	bull.do_jitter_animation(20)
+	// Whoever's riding us keeps going when we stop
+	var/datum/component/riding/creature/riding = bull.GetComponent(/datum/component/riding/creature)
+	for(var/mob/living/rider in LAZYCOPY(bull.buckled_mobs))
+		riding?.force_dismount(rider, throw_range = 3)
 
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/abort_charge(datum/source)
 	SIGNAL_HANDLER

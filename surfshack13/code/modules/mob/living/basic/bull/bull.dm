@@ -49,6 +49,7 @@
 	charge.Grant(src)
 	ai_controller.set_blackboard_key(BB_TARGETED_ACTION, charge)
 	RegisterSignal(src, COMSIG_HOSTILE_POST_ATTACKINGTARGET, PROC_REF(on_attacked_target))
+	setup_riding()
 
 /// Our regular attacks gore too, just with less oomph than a full charge
 /mob/living/basic/bull/proc/on_attacked_target(mob/living/basic/source, atom/target, success)
