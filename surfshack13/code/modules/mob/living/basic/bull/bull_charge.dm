@@ -18,7 +18,7 @@
  * - Reinforced/hard walls and anything else it can't break stun the bull instead.
  * - Windows, grilles, tables and the like are just ploughed through.
  * - If nothing gets hit the cooldown is short so the AI simply lines up again.
- * - Anyone wearing or waving red, or covered in blood, makes us see red: faster, longer, harder charge.
+ * - Anyone wearing or waving red, or covered in blood, makes us see red: the dash itself is faster.
  */
 /datum/action/cooldown/mob_cooldown/bull_charge
 	name = "Bull Rush"
@@ -63,12 +63,6 @@
 
 	/// Seeing red: multiplier on deciseconds per tile (lower is faster)
 	var/enraged_speed_mult = 0.5
-	/// Seeing red: multiplier on how far we charge
-	var/enraged_range_mult = 2
-	/// Seeing red: multiplier on how long we wind up
-	var/enraged_windup_mult = 0.6
-	/// Seeing red: multiplier on gore damage
-	var/enraged_damage_mult = 1.5
 
 	/// Sound slot: pawing the ground / snorting during the windup
 	var/windup_sound = 'sound/mobs/non-humanoids/cow/cow.ogg'
@@ -161,7 +155,7 @@
 		begin_dash()
 		return TRUE
 
-	var/windup = enraged ? windup_time * enraged_windup_mult : windup_time
+	var/windup = windup_time
 	bull.face_atom(target)
 	if(enraged)
 		bull.visible_message(span_big(span_bolddanger("[bull] SEES RED and bellows with fury!")))
@@ -205,9 +199,8 @@
 	playsound(bull, dash_sound, 60, TRUE)
 
 	var/speed = enraged ? charge_speed * enraged_speed_mult : charge_speed
-	var/range = enraged ? charge_range * enraged_range_mult : charge_range
 	// Not homing, so it keeps going in a straight line past the aim turf until the timeout
-	charge_loop = GLOB.move_manager.move_towards(bull, aim_turf, speed, FALSE, (range + max_walls) * speed, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
+	charge_loop = GLOB.move_manager.move_towards(bull, aim_turf, speed, FALSE, (charge_range + max_walls) * speed, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
 	if(!charge_loop)
 		end_charge(BULL_CHARGE_ABORTED)
 		return
@@ -348,7 +341,7 @@
 		victim.Knockdown(gore_knockdown * 0.5)
 		recoil(null)
 		return
-	bull_gore(bull, victim, enraged ? gore_damage * enraged_damage_mult : gore_damage, throw_range, charge_dir, WOUND_SEVERITY_SEVERE, gore_knockdown, toss_chance, wound_chance)
+	bull_gore(bull, victim, gore_damage, throw_range, charge_dir, WOUND_SEVERITY_SEVERE, gore_knockdown, toss_chance, wound_chance)
 
 /// Knock a door clean off its frame and send it flying ahead of us
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/fling_door(obj/door)
