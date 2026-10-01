@@ -269,6 +269,21 @@
 	if(!isobj(bumped))
 		return
 	var/obj/thing = bumped
+	// Water tanks burst, fuel tanks go up in flames
+	if(istype(thing, /obj/structure/reagent_dispensers))
+		var/obj/structure/reagent_dispensers/tank = thing
+		bull.visible_message(span_danger("[bull] gores [tank] wide open!"))
+		log_combat(bull, tank, "gored open")
+		tank.boom()
+		return
+	// Gas canisters rupture with a bang and dump everything inside
+	if(istype(thing, /obj/machinery/portable_atmospherics/canister) && !(thing.resistance_flags & INDESTRUCTIBLE))
+		var/obj/machinery/portable_atmospherics/canister/canister = thing
+		bull.visible_message(span_danger("[bull] rams straight through [canister], blowing it apart!"))
+		log_combat(bull, canister, "blew apart")
+		canister.canister_break()
+		explosion(canister, light_impact_range = 1, flash_range = 2, explosion_cause = bull)
+		return
 	if(is_type_in_typecache(thing, flingable_doors) && thing.density && !(thing.resistance_flags & INDESTRUCTIBLE))
 		fling_door(thing)
 		return
