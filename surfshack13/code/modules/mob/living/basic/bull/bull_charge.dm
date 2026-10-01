@@ -337,7 +337,7 @@
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/stagger_from_blast()
 	if(QDELETED(owner) || owner.stat == DEAD)
 		return
-	owner.visible_message(span_danger("[owner] staggers out of the blast, dazed!"))
+	owner.visible_message(span_big(span_bolddanger("[owner] staggers out of the blast, dazed!")))
 	recoil(null)
 
 /// We hit something we can't get through, ouch
@@ -346,7 +346,7 @@
 	if(charging)
 		end_charge(BULL_CHARGE_HIT_OBSTACLE)
 	if(obstacle)
-		bull.visible_message(span_danger("[bull] slams headfirst into [obstacle] and staggers!"))
+		bull.visible_message(span_big(span_bolddanger("[bull] slams headfirst into [obstacle] and staggers!")))
 		playsound(obstacle, 'sound/effects/bang.ogg', 80, TRUE)
 		if(iswallturf(obstacle))
 			var/turf/closed/wall/wall = obstacle
