@@ -20,6 +20,8 @@
 	attack_verb_continuous = "rams"
 	attack_verb_simple = "ram"
 	attack_sound = 'sound/items/weapons/punch1.ogg'
+	// Sound slot: death bellow (placeholder: cow moo)
+	death_sound = 'sound/mobs/non-humanoids/cow/cow.ogg'
 	attack_vis_effect = ATTACK_EFFECT_SMASH
 	butcher_results = list(/obj/item/food/meat/slab/grassfed = 8)
 	faction = list(FACTION_HOSTILE)

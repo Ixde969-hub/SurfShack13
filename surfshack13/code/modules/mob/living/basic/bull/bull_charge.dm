@@ -18,6 +18,7 @@
  * - Reinforced/hard walls and anything else it can't break stun the bull instead.
  * - Windows, grilles, tables and the like are just ploughed through.
  * - If nothing gets hit the cooldown is short so the AI simply lines up again.
+ * - Anyone wearing or waving red, or covered in blood, makes us see red: faster, longer, harder charge.
  */
 /datum/action/cooldown/mob_cooldown/bull_charge
 	name = "Bull Rush"
@@ -60,6 +61,22 @@
 	/// Brute damage we take when slamming into something we can't break
 	var/recoil_damage = 5
 
+	/// Seeing red: multiplier on deciseconds per tile (lower is faster)
+	var/enraged_speed_mult = 0.5
+	/// Seeing red: multiplier on how far we charge
+	var/enraged_range_mult = 2
+	/// Seeing red: multiplier on how long we wind up
+	var/enraged_windup_mult = 0.6
+	/// Seeing red: multiplier on gore damage
+	var/enraged_damage_mult = 1.5
+
+	/// Sound slot: pawing the ground / snorting during the windup
+	var/windup_sound = 'sound/mobs/non-humanoids/pony/snort.ogg'
+	/// Sound slot: furious bellow when we see red
+	var/enraged_sound = 'sound/mobs/non-humanoids/cow/cow.ogg'
+	/// Sound slot: hooves thundering as the dash starts
+	var/dash_sound = 'sound/effects/meteorimpact.ogg'
+
 	/// Are we currently winding up or dashing
 	var/charging = FALSE
 	/// Are we currently performing a move from our own loop (anything else gets blocked)
@@ -76,6 +93,8 @@
 	var/walls_smashed = 0
 	/// Timers for windup stages, so we can cancel them
 	var/list/windup_timers
+	/// Is the current charge a seeing-red one
+	var/enraged = FALSE
 
 	/// Things we just smash through without slowing down
 	var/static/list/fragile_types = typecacheof(list(
@@ -126,6 +145,7 @@
 	var/mob/living/bull = owner
 	charging = TRUE
 	walls_smashed = 0
+	enraged = bull_sees_red(target)
 	target_ref = WEAKREF(target)
 	aim_turf = target_turf
 	// Hold the cooldown (and melee) until the charge is over
@@ -138,16 +158,23 @@
 		begin_dash()
 		return TRUE
 
+	var/windup = enraged ? windup_time * enraged_windup_mult : windup_time
 	bull.face_atom(target)
-	bull.visible_message(span_danger("[bull] paws at the ground and lowers [bull.p_their()] horns!"))
-	playsound(bull, 'sound/mobs/non-humanoids/cow/cow.ogg', 80, TRUE, frequency = 0.7)
-	bull.Shake(2, 1, windup_time)
+	if(enraged)
+		bull.visible_message(span_big(span_bolddanger("[bull] SEES RED and bellows with fury!")))
+		if(ismob(target))
+			to_chat(target, span_big(span_userdanger("[bull] is locked onto all that red on you. RUN!")))
+		playsound(bull, enraged_sound, 100, TRUE, frequency = 0.6)
+	else
+		bull.visible_message(span_danger("[bull] paws at the ground and lowers [bull.p_their()] horns!"))
+	playsound(bull, windup_sound, 80, TRUE, frequency = 0.8)
+	bull.Shake(enraged ? 3 : 2, 1, windup)
 	var/obj/effect/temp_visual/decoy/flash = new(bull.loc, bull)
-	animate(flash, alpha = 0, color = COLOR_RED, transform = matrix() * 1.5, time = windup_time)
+	animate(flash, alpha = 0, color = COLOR_RED, transform = matrix() * (enraged ? 2 : 1.5), time = windup)
 
 	windup_timers = list(
-		addtimer(CALLBACK(src, PROC_REF(lock_aim)), max(windup_time - aim_lock_time, 0), TIMER_STOPPABLE),
-		addtimer(CALLBACK(src, PROC_REF(begin_dash)), windup_time, TIMER_STOPPABLE),
+		addtimer(CALLBACK(src, PROC_REF(lock_aim)), max(windup - aim_lock_time, 0), TIMER_STOPPABLE),
+		addtimer(CALLBACK(src, PROC_REF(begin_dash)), windup, TIMER_STOPPABLE),
 	)
 	return TRUE
 
@@ -172,10 +199,12 @@
 
 	charge_dir = get_dir(bull, aim_turf)
 	bull.setDir(charge_dir)
-	playsound(bull, 'sound/effects/meteorimpact.ogg', 60, TRUE)
+	playsound(bull, dash_sound, 60, TRUE)
 
+	var/speed = enraged ? charge_speed * enraged_speed_mult : charge_speed
+	var/range = enraged ? charge_range * enraged_range_mult : charge_range
 	// Not homing, so it keeps going in a straight line past the aim turf until the timeout
-	charge_loop = GLOB.move_manager.move_towards(bull, aim_turf, charge_speed, FALSE, (charge_range + max_walls) * charge_speed, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
+	charge_loop = GLOB.move_manager.move_towards(bull, aim_turf, speed, FALSE, (range + max_walls) * speed, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
 	if(!charge_loop)
 		end_charge(BULL_CHARGE_ABORTED)
 		return
@@ -316,7 +345,7 @@
 		victim.Knockdown(gore_knockdown * 0.5)
 		recoil(null)
 		return
-	bull_gore(bull, victim, gore_damage, throw_range, charge_dir, WOUND_SEVERITY_SEVERE, gore_knockdown, toss_chance, wound_chance)
+	bull_gore(bull, victim, enraged ? gore_damage * enraged_damage_mult : gore_damage, throw_range, charge_dir, WOUND_SEVERITY_SEVERE, gore_knockdown, toss_chance, wound_chance)
 
 /// Knock a door clean off its frame and send it flying ahead of us
 /datum/action/cooldown/mob_cooldown/bull_charge/proc/fling_door(obj/door)
@@ -390,6 +419,35 @@
 	else
 		StartCooldown(cooldown_time, post_charge_melee_cooldown)
 	SEND_SIGNAL(owner, COMSIG_FINISHED_CHARGE)
+
+/// Is this target wearing or waving anything red, or covered in blood?
+/proc/bull_sees_red(atom/target)
+	if(!isliving(target))
+		return FALSE
+	var/mob/living/living_target = target
+	if(GET_ATOM_BLOOD_DNA_LENGTH(living_target) || is_bull_red(living_target.color))
+		return TRUE
+	for(var/obj/item/thing as anything in living_target.get_equipped_items(INCLUDE_HELD))
+		if(GET_ATOM_BLOOD_DNA_LENGTH(thing) || is_bull_red(thing.color))
+			return TRUE
+		if(thing.greyscale_colors)
+			for(var/colour in splittext(thing.greyscale_colors, "#"))
+				if(colour && is_bull_red("#[colour]"))
+					return TRUE
+		var/static/regex/red_name = regex(@"\b(red|crimson|scarlet|bloody)\b", "i")
+		if(red_name.Find(thing.name))
+			return TRUE
+	return FALSE
+
+/// Is this colour red enough to set a bull off?
+/proc/is_bull_red(colour)
+	if(!istext(colour) || length(colour) < 7)
+		return FALSE
+	var/list/hsl = rgb2num(colour, COLORSPACE_HSL)
+	if(length(hsl) < 3)
+		return FALSE
+	var/hue = hsl[1]
+	return (hue <= 20 || hue >= 340) && hsl[2] >= 45 && hsl[3] >= 15 && hsl[3] <= 75
 
 /**
  * Gore a mob: brute damage, maybe a wound, and a trip through the air.
