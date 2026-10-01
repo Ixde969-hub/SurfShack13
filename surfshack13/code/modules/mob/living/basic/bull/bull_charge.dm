@@ -49,6 +49,8 @@
 	var/fragile_damage = 400
 	/// Damage dealt to other dense objects we slam into (airlocks, machines...)
 	var/obstacle_damage = 120
+	/// How long after a charge before we can attack normally again
+	var/post_charge_melee_cooldown = 2 SECONDS
 	/// How long we're stunned after hitting something we can't break
 	var/recoil_stun = 1 SECONDS
 	/// Brute damage we take when slamming into something we can't break
@@ -353,12 +355,12 @@
 	if(QDELETED(owner))
 		return
 	if(result == BULL_CHARGE_ABORTED)
-		StartCooldown(miss_cooldown, 0)
+		StartCooldown(miss_cooldown, post_charge_melee_cooldown)
 	else if(result == BULL_CHARGE_MISSED)
 		owner.visible_message(span_notice("[owner] skids to a halt and snorts, looking around."))
-		StartCooldown(miss_cooldown, 0)
+		StartCooldown(miss_cooldown, post_charge_melee_cooldown)
 	else
-		StartCooldown(cooldown_time, 0)
+		StartCooldown(cooldown_time, post_charge_melee_cooldown)
 	SEND_SIGNAL(owner, COMSIG_FINISHED_CHARGE)
 
 /**

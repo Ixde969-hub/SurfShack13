@@ -13,6 +13,8 @@
 		BB_BULL_LAST_TARGET_TIME = 0,
 		BB_BULL_RAMPAGING = FALSE,
 	)
+	// Keep thinking even with nobody nearby, so it roams the station on its own
+	can_idle = FALSE
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk
 	planning_subtrees = list(
