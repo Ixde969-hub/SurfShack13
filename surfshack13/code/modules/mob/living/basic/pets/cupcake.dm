@@ -1,5 +1,7 @@
 /// Blackboard key, set while Cupcake has gone feral and is hunting her former owners
 #define BB_CUPCAKE_FERAL "BB_cupcake_feral"
+/// How many 45 degree steps make up one full spin
+#define SPIN_STEPS 8
 
 /**
  * # Cupcake
@@ -66,6 +68,12 @@
 	var/datum/action/cooldown/mob_cooldown/neck_bite/neck_bite
 	/// Stops us from barking over ourselves
 	COOLDOWN_DECLARE(noise_cooldown)
+	/// Cooldown between latching on and spinning someone around
+	COOLDOWN_DECLARE(spin_cooldown)
+	/// How long between spins
+	var/spin_cooldown_time = 15 SECONDS
+	/// Whoever we currently have clamped in our jaws and are spinning around
+	var/mob/living/carbon/spin_victim
 
 	/// Snarling, angry barks for when we're about to hurt someone
 	var/static/list/aggro_sounds = list(
@@ -129,11 +137,13 @@
 	RegisterSignals(src, list(COMSIG_AI_BLACKBOARD_KEY_SET(BB_BASIC_MOB_CURRENT_TARGET), COMSIG_AI_BLACKBOARD_KEY_SET(BB_CURRENT_PET_TARGET)), PROC_REF(on_target_set))
 
 /mob/living/basic/pitbull/Destroy()
+	reset_spin_victim()
 	QDEL_NULL(neck_bite)
 	return ..()
 
 /mob/living/basic/pitbull/death(gibbed)
 	. = ..()
+	reset_spin_victim()
 	make_noise(whine_sounds, volume = 60, force = TRUE)
 
 /// Plays a random sound from the list, unless we made a noise very recently
@@ -237,7 +247,10 @@
 			continue
 		ai_controller.insert_blackboard_key_lazylist(BB_BASIC_MOB_RETALIATE_LIST, former_owner)
 		to_chat(former_owner, span_userdanger("[src] has gone feral from hunger and is coming for you!"))
-		if(isnull(first_victim) || get_dist(src, former_owner) < get_dist(src, first_victim))
+		// dwarfs first, then whoever is closest
+		if(isnull(first_victim) || (HAS_TRAIT(former_owner, TRAIT_DWARF) && !HAS_TRAIT(first_victim, TRAIT_DWARF)))
+			first_victim = former_owner
+		else if(HAS_TRAIT(former_owner, TRAIT_DWARF) == HAS_TRAIT(first_victim, TRAIT_DWARF) && get_dist(src, former_owner) < get_dist(src, first_victim))
 			first_victim = former_owner
 	if(first_victim)
 		ai_controller.set_blackboard_key(BB_BASIC_MOB_CURRENT_TARGET, first_victim)
@@ -273,15 +286,102 @@
 		make_noise(aggro_sounds, volume = 60, cooldown = 4 SECONDS)
 
 /// The AI goes for the throat whenever the neck bite is ready
+/// Anyone on the floor gets grabbed and spun, otherwise the AI goes for the throat whenever the neck bite is ready
 /mob/living/basic/pitbull/proc/on_pre_attack(mob/living/source, atom/target, proximity, modifiers)
 	SIGNAL_HANDLER
-	if(client || !proximity || !isliving(target) || !neck_bite?.IsAvailable())
+	if(spin_victim)
+		return COMPONENT_HOSTILE_NO_ATTACK
+	if(!proximity || !isliving(target))
 		return NONE
 	var/mob/living/victim = target
 	if(victim.stat == DEAD)
 		return NONE
+	if(iscarbon(victim) && check_spin(victim))
+		INVOKE_ASYNC(src, PROC_REF(spin_and_throw), victim)
+		return COMPONENT_HOSTILE_NO_ATTACK
+	if(client || !neck_bite?.IsAvailable())
+		return NONE
 	INVOKE_ASYNC(neck_bite, TYPE_PROC_REF(/datum/action, Trigger), NONE, victim)
 	return COMPONENT_HOSTILE_NO_ATTACK
+
+/// Can we clamp down on this person and spin them around? Like the gators, they need to be on the floor first.
+/mob/living/basic/pitbull/proc/check_spin(mob/living/carbon/victim)
+	if(victim.body_position != LYING_DOWN || victim.buckled || victim.mob_size > MOB_SIZE_HUMAN)
+		return FALSE
+	if(!isturf(loc) || !isturf(victim.loc))
+		return FALSE
+	if(!has_gravity())
+		to_chat(src, span_notice("You can't get a grip to spin [victim] without gravity!"))
+		return FALSE
+	if(!COOLDOWN_FINISHED(src, spin_cooldown))
+		to_chat(src, span_notice("Your jaw is still sore from the last spin, wait a second."))
+		return FALSE
+	if(HAS_TRAIT(victim.loc, TRAIT_ELEVATED_TURF) && !HAS_TRAIT(loc, TRAIT_ELEVATED_TURF))
+		to_chat(src, span_notice("[victim] is too high up to grab."))
+		return FALSE
+	return TRUE
+
+/// Is the spin still going? Checked between every step since we sleep.
+/mob/living/basic/pitbull/proc/can_keep_spinning(mob/living/carbon/victim)
+	if(QDELETED(src) || stat == DEAD || QDELETED(victim) || spin_victim != victim)
+		return FALSE
+	if(get_dist(src, victim) > 1 || !isturf(loc) || !isturf(victim.loc))
+		return FALSE
+	return TRUE
+
+/// Clamp down on the victim, swing them a full 360 around us like a wrestler, then send them flying
+/mob/living/basic/pitbull/proc/spin_and_throw(mob/living/carbon/victim)
+	spin_victim = victim
+	COOLDOWN_START(src, spin_cooldown, spin_cooldown_time)
+	victim.add_traits(list(TRAIT_IMMOBILIZED, TRAIT_HANDS_BLOCKED, TRAIT_INCAPACITATED), REF(src))
+	ADD_TRAIT(src, TRAIT_IMMOBILIZED, REF(src))
+	face_atom(victim)
+	victim.visible_message(span_danger("[src] clamps down on [victim] and starts spinning [victim.p_them()] around!"), \
+		span_userdanger("[src] clamps down on you and starts spinning you around!"), span_hear("You hear snarling and aggressive shuffling!"), null, src)
+	playsound(src, 'sound/items/weapons/bite.ogg', 70, TRUE)
+	make_noise(aggro_sounds, volume = 80, force = TRUE)
+	victim.emote("scream")
+
+	for(var/i in 1 to SPIN_STEPS)
+		var/delay = 0.5
+		switch(i)
+			if(1 to 2)
+				delay = 3
+			if(3 to 4)
+				delay = 2
+			if(5 to 6)
+				delay = 1
+		if(!can_keep_spinning(victim))
+			reset_spin_victim()
+			return
+		setDir(turn(dir, -45))
+		var/turf/next_turf = get_step(src, dir)
+		var/turf/victim_turf = victim.loc
+		if(next_turf && victim_turf.Exit(victim, get_dir(victim_turf, next_turf)) && next_turf.Enter(victim))
+			victim.forceMove(next_turf)
+			victim.setDir(get_dir(victim, src))
+		sleep(delay)
+
+	if(!can_keep_spinning(victim))
+		reset_spin_victim()
+		return
+	reset_spin_victim()
+	victim.forceMove(loc) // same trick as the wrestling throw, stops people getting thrown through walls
+	victim.visible_message(span_danger("[src] lets go and sends [victim] flying!"), \
+		span_userdanger("[src] lets go and sends you flying!"), span_hear("You hear a snarl and a loud thud!"), null, src)
+	playsound(src, SFX_SWING_HIT, 50, TRUE)
+	var/turf/throw_target = get_edge_target_turf(src, dir)
+	if(throw_target)
+		victim.throw_at(throw_target, 7, 4, src, TRUE, TRUE, callback = CALLBACK(victim, TYPE_PROC_REF(/mob/living, Paralyze), 2 SECONDS))
+	log_combat(src, victim, "spun around and threw")
+
+/// Let go of whoever we're spinning
+/mob/living/basic/pitbull/proc/reset_spin_victim()
+	REMOVE_TRAIT(src, TRAIT_IMMOBILIZED, REF(src))
+	if(!spin_victim)
+		return
+	spin_victim.remove_traits(list(TRAIT_IMMOBILIZED, TRAIT_HANDS_BLOCKED, TRAIT_INCAPACITATED), REF(src))
+	spin_victim = null
 
 /// Ghosts always get to watch Cupcake, even when nobody is controlling her
 /datum/orbit_menu/validate_mob_poi(datum/point_of_interest/mob_poi/potential_poi)
@@ -342,6 +442,8 @@
 		carbon_victim.apply_damage(bite_damage, BRUTE, neck, wound_bonus = CANT_WOUND)
 		var/severity = prob(40) ? WOUND_SEVERITY_CRITICAL : WOUND_SEVERITY_SEVERE
 		carbon_victim.cause_wound_of_type_and_severity(list(WOUND_PIERCE, WOUND_SLASH), neck, severity, wound_source = "pitbull bite")
+		// drags them to the floor, setting them up to be grabbed and spun
+		carbon_victim.Knockdown(2 SECONDS)
 	else
 		// no neck to bleed from, so it just hurts a lot more
 		victim.apply_damage(bite_damage * 2, BRUTE)
@@ -353,6 +455,7 @@
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic,
 		BB_PET_TARGETING_STRATEGY = /datum/targeting_strategy/basic/not_friends,
 		BB_TARGET_MINIMUM_STAT = HARD_CRIT,
+		BB_TARGET_PRIORITY_TRAIT = TRAIT_DWARF,
 		BB_OWNER_SELF_HARM_RESPONSES = list(
 			"*me whines.",
 			"*me growls in disapproval.",
@@ -363,18 +466,35 @@
 	idle_behavior = /datum/idle_behavior/idle_random_walk
 	planning_subtrees = list(
 		/datum/ai_planning_subtree/pet_planning,
-		/datum/ai_planning_subtree/target_retaliate,
-		/datum/ai_planning_subtree/simple_find_target/cupcake_feral,
+		/datum/ai_planning_subtree/target_retaliate/prefer_dwarfs,
+		/datum/ai_planning_subtree/find_target_prioritize_traits/cupcake_feral,
 		/datum/ai_planning_subtree/attack_obstacle_in_path,
 		/datum/ai_planning_subtree/basic_melee_attack_subtree,
 	)
 
 /// Only goes looking for victims on its own while feral, otherwise it just defends itself
-/datum/ai_planning_subtree/simple_find_target/cupcake_feral
+/datum/ai_planning_subtree/find_target_prioritize_traits/cupcake_feral
 
-/datum/ai_planning_subtree/simple_find_target/cupcake_feral/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
+/datum/ai_planning_subtree/find_target_prioritize_traits/cupcake_feral/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
 	if(!controller.blackboard[BB_CUPCAKE_FERAL])
 		return
+	return ..()
+
+/// Fights back against whoever hurt us, dwarfs first
+/datum/ai_planning_subtree/target_retaliate/prefer_dwarfs
+
+/datum/ai_planning_subtree/target_retaliate/prefer_dwarfs/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
+	controller.queue_behavior(/datum/ai_behavior/target_from_retaliate_list/prefer_dwarfs, BB_BASIC_MOB_RETALIATE_LIST, target_key, targeting_strategy_key, hiding_place_key, check_faction)
+
+/datum/ai_behavior/target_from_retaliate_list/prefer_dwarfs
+
+/datum/ai_behavior/target_from_retaliate_list/prefer_dwarfs/pick_final_target(datum/ai_controller/controller, list/enemies_list)
+	var/list/dwarfs = list()
+	for(var/mob/living/enemy as anything in enemies_list)
+		if(HAS_TRAIT(enemy, TRAIT_DWARF))
+			dwarfs += enemy
+	if(length(dwarfs))
+		return pick(dwarfs)
 	return ..()
 
 /// Recall, come back to your owner
@@ -405,3 +525,4 @@
 	return ..()
 
 #undef BB_CUPCAKE_FERAL
+#undef SPIN_STEPS
