@@ -283,6 +283,12 @@
 	INVOKE_ASYNC(neck_bite, TYPE_PROC_REF(/datum/action, Trigger), NONE, victim)
 	return COMPONENT_HOSTILE_NO_ATTACK
 
+/// Ghosts always get to watch Cupcake, even when nobody is controlling her
+/datum/orbit_menu/validate_mob_poi(datum/point_of_interest/mob_poi/potential_poi)
+	if(istype(potential_poi.target, /mob/living/basic/pitbull))
+		return potential_poi.validate()
+	return ..()
+
 /// Tameable, with assistants getting a bonus. Something about kindred spirits.
 /datum/component/tameable/cupcake
 	/// Bonus tame chance for assistants
