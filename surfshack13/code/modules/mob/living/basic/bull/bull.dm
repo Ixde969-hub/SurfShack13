@@ -2,11 +2,12 @@
 /mob/living/basic/bull
 	name = "bull"
 	desc = "A massive, short-tempered beast. Probably best not to wear red around it."
-	// TODO: placeholder (Pete's goat sprite) until the real bull sprite is done
-	icon = 'icons/mob/simple/animal.dmi'
-	icon_state = "goat"
-	icon_living = "goat"
-	icon_dead = "goat_dead"
+	icon = 'surfshack13/icons/mob/bull.dmi'
+	icon_state = "Bull"
+	icon_living = "Bull"
+	icon_dead = "Dead"
+	// 64px wide sprite, centre it on the tile. pixel_w so shaking and riding offsets leave it alone
+	pixel_w = -16
 	gender = MALE
 	mob_biotypes = MOB_ORGANIC | MOB_BEAST | MOB_RUMINANT
 	mob_size = MOB_SIZE_LARGE
