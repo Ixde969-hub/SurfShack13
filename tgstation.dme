@@ -6620,6 +6620,7 @@
 #include "surfshack13\code\modules\cultivation\wuxia\martial_ranking.dm"
 #include "surfshack13\code\modules\cultivation\wuxia\martial_styles.dm"
 #include "surfshack13\code\modules\cultivation\wuxia\sect_missions.dm"
+#include "surfshack13\code\modules\cultivation\wuxia\sworn_brotherhood.dm"
 #include "surfshack13\code\modules\datums\components\crafting\misc.dm"
 #include "surfshack13\code\modules\frog_ui\frog_ui.dm"
 #include "surfshack13\code\modules\mob\living\tweak.dm"
