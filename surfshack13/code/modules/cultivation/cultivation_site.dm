@@ -208,5 +208,50 @@ GLOBAL_LIST_INIT(cultivation_element_sources, list(
 	time = 5 SECONDS
 	category = CAT_FURNITURE
 
+// ===================== Station qi =====================
+
+/**
+ * The station is full of things no mountain hermit ever had: a supermatter crystal, plasma fires, a captive ball of lightning.
+ * Meditating beside one is several times faster, and it is exactly as dangerous as it sounds.
+ * Returns the extra meditation multiplier for this cycle (0 if there's nothing nearby), and does the harm.
+ */
+/proc/cultivation_station_qi_cycle(mob/living/user, datum/antagonist/cultivator/cultivator)
+	var/turf/here = get_turf(user)
+	if(!here)
+		return 0
+	. = 0
+	if(locate(/obj/machinery/power/supermatter_crystal) in range(4, here))
+		. += 1.5
+		cultivator.gain_insight(8, "station_qi_supermatter", cooldown = 0, silent = TRUE)
+		to_chat(user, span_warning("The supermatter's song pours raw qi into you... and something else."))
+		user.apply_damage(3, BURN)
+		if(prob(35))
+			SSradiation.irradiate(user)
+	if(locate(/obj/effect/hotspot) in range(2, here))
+		. += 1
+		cultivator.gain_insight(6, "station_qi_fire", cooldown = 0, silent = TRUE)
+		to_chat(user, span_warning("You breathe in the fire's qi. It breathes back."))
+		user.apply_damage(5, BURN)
+		user.adjust_fire_stacks(1)
+		user.ignite_mob()
+	if(locate(/obj/energy_ball) in range(6, here))
+		. += 2
+		cultivator.gain_insight(10, "station_qi_lightning", cooldown = 0, silent = TRUE)
+		to_chat(user, span_warning("Heaven's own lightning crackles around you, feeding your meridians."))
+		if(prob(40))
+			user.electrocute_act(15, "a ball of lightning", flags = SHOCK_NOGLOVES)
+	if(.)
+		new /obj/effect/temp_visual/circle_wave/cultivation/gold(here)
+
+/// What Spiritual Sense notices about station qi nearby
+/proc/cultivation_station_qi_lines(turf/here)
+	. = list()
+	if(locate(/obj/machinery/power/supermatter_crystal) in range(4, here))
+		. += span_boldnotice("The supermatter hums with overwhelming qi. Meditating beside it would be very fast, and very dangerous.")
+	if(locate(/obj/effect/hotspot) in range(2, here))
+		. += span_boldnotice("Wild fire qi blazes nearby. Meditating in it would be fast, and painful.")
+	if(locate(/obj/energy_ball) in range(6, here))
+		. += span_boldnotice("A ball of heaven's lightning is close. Its qi is immense, and so is the danger.")
+
 #undef SITE_ELEMENT_CAP
 #undef SITE_SAME_TYPE_CAP

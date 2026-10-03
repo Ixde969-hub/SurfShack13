@@ -72,6 +72,8 @@ GLOBAL_LIST_INIT(cultivation_forbidden_techniques, list(
 /// What Spiritual Sense notices about someone's demonic qi
 /proc/cultivation_sense_forbidden(mob/living/other)
 	. = list()
+	if(cultivation_is_concealed(other))
+		return
 	var/datum/antagonist/cultivator/other_cultivator = IS_CULTIVATOR(other)
 	if(other_cultivator?.demonic)
 		. += span_danger("[other] reeks of demonic qi!")

@@ -90,6 +90,9 @@
 		/datum/action/cooldown/spell/pointed/cultivation/beast_contract = REALM_FOUNDATION,
 		/datum/action/cooldown/spell/cultivation/summon_beast = REALM_FOUNDATION,
 		/datum/action/cooldown/spell/pointed/cultivation/acupoint = REALM_FOUNDATION,
+		/datum/action/cooldown/spell/cultivation/concealment = REALM_FOUNDATION,
+		/datum/action/cooldown/spell/cultivation/forced_circulation = REALM_FOUNDATION,
+		/datum/action/cooldown/spell/cultivation/body_outside_body = REALM_NASCENT_SOUL,
 		/datum/action/cooldown/spell/cultivation/realm_pressure = REALM_FOUNDATION,
 		/datum/action/cooldown/spell/cultivation/ascension = REALM_NASCENT_SOUL,
 	)
@@ -690,7 +693,7 @@
 /datum/antagonist/cultivator/proc/on_examine(mob/living/source, mob/user, list/examine_list)
 	SIGNAL_HANDLER
 	var/datum/antagonist/cultivator/other = IS_CULTIVATOR(user)
-	if(!other || other == src)
+	if(!other || other == src || cultivation_is_concealed(source))
 		return
 	var/my_realm = effective_realm()
 	var/their_realm = other.effective_realm()
