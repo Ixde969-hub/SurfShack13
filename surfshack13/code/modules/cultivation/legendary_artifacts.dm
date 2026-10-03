@@ -253,6 +253,17 @@
 	var/dragon_awake = FALSE
 	COOLDOWN_DECLARE(dragon_cooldown)
 
+/// Every Dragon Slaying Saber in existence, for the Martial World Ranking
+GLOBAL_LIST_EMPTY(jianghu_dragon_sabers)
+
+/obj/item/cultivation_artifact/dragon_saber/Initialize(mapload)
+	. = ..()
+	GLOB.jianghu_dragon_sabers += src
+
+/obj/item/cultivation_artifact/dragon_saber/Destroy()
+	GLOB.jianghu_dragon_sabers -= src
+	return ..()
+
 /obj/item/cultivation_artifact/dragon_saber/attack_self(mob/user)
 	if(dragon_awake)
 		return

@@ -160,6 +160,36 @@
 	TEST_ASSERT(palm_victim.health < health_before, "The heart burst didn't hurt.")
 	TEST_ASSERT_NULL(palm_victim.has_status_effect(/datum/status_effect/exploding_heart), "The palm lingered after bursting.")
 
+	// Martial World Ranking: winners join, upsets take the loser's place, and the same pair can't swap twice in a row
+	var/list/old_ranking = GLOB.jianghu_ranking.Copy()
+	var/list/old_cooldowns = GLOB.jianghu_ranking_pair_cooldowns.Copy()
+	GLOB.jianghu_ranking.Cut()
+	GLOB.jianghu_ranking_pair_cooldowns.Cut()
+	var/list/fighters = list()
+	for(var/i in 1 to 3)
+		var/mob/living/carbon/human/consistent/fighter = allocate(/mob/living/carbon/human/consistent)
+		fighter.mind_initialize()
+		fighters += fighter
+	var/mob/living/fighter_a = fighters[1]
+	var/mob/living/fighter_b = fighters[2]
+	var/mob/living/fighter_c = fighters[3]
+	jianghu_ranking_record(fighter_a, fighter_b)
+	TEST_ASSERT_EQUAL(jianghu_rank_of(fighter_a.mind), 1, "Winning a duel didn't put an unranked fighter on the list.")
+	TEST_ASSERT_EQUAL(jianghu_rank_of(fighter_b.mind), 0, "Losing an unranked duel ranked the loser.")
+	jianghu_ranking_record(fighter_c, fighter_a)
+	TEST_ASSERT_EQUAL(jianghu_rank_of(fighter_c.mind), 1, "Beating the top fighter didn't take their place.")
+	TEST_ASSERT_EQUAL(jianghu_rank_of(fighter_a.mind), 2, "The beaten top fighter didn't slide down one place.")
+	jianghu_ranking_record(fighter_a, fighter_c)
+	TEST_ASSERT_EQUAL(jianghu_rank_of(fighter_c.mind), 1, "The same pair swapped places twice within the cooldown.")
+	jianghu_ranking_record(fighter_b, fighter_c)
+	TEST_ASSERT_EQUAL(jianghu_rank_of(fighter_b.mind), 1, "An unranked upset winner didn't take first place.")
+	TEST_ASSERT_EQUAL(jianghu_rank_of(fighter_c.mind), 2, "The upset loser didn't slide down.")
+	TEST_ASSERT_EQUAL(jianghu_rank_of(fighter_a.mind), 3, "Everyone below the upset didn't slide down.")
+	TEST_ASSERT(jianghu_refuses_challenge(new_body, fighter_b), "First Under Heaven accepted a challenge from an unranked fighter.")
+	TEST_ASSERT(!jianghu_refuses_challenge(fighter_a, fighter_b), "First Under Heaven refused a top-five challenger.")
+	GLOB.jianghu_ranking = old_ranking
+	GLOB.jianghu_ranking_pair_cooldowns = old_cooldowns
+
 	// Removal cleans up techniques
 	new_body.mind.remove_antag_datum(/datum/antagonist/cultivator)
 	TEST_ASSERT_NULL(locate(/datum/action/cooldown/spell/cultivation/meditate) in new_body.actions, "Techniques survived losing cultivation.")

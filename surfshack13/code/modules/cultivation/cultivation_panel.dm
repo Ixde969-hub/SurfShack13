@@ -159,5 +159,8 @@ GLOBAL_LIST_INIT(cultivation_element_colors, list(
 	if(mandate)
 		html += "<br><span style='color:#ffd55a'>You bear the Mandate of Heaven as [mandate.title_of()]. Your cultivation is blessed.</span>"
 	html += "</div>"
+	var/list/ranking_lines = jianghu_ranking_lines()
+	html += "<h2>Martial World Ranking</h2><div class='card'>[ranking_lines.Join("<br>")]<br>\
+		<span class='dim'>Win an honor duel against someone above you to take their place. The top three cultivate faster; First Under Heaven only accepts challenges from the top five.</span></div>"
 	html += "<div class='dim' style='margin-top:10px; text-align:center;'>学而时习之，不亦说乎</div>"
 	return html.Join()
