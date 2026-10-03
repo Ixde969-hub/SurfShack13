@@ -6598,6 +6598,7 @@
 #include "surfshack13\code\modules\cultivation\forbidden.dm"
 #include "surfshack13\code\modules\cultivation\guqin.dm"
 #include "surfshack13\code\modules\cultivation\heart_demon.dm"
+#include "surfshack13\code\modules\cultivation\internal_injury.dm"
 #include "surfshack13\code\modules\cultivation\items.dm"
 #include "surfshack13\code\modules\cultivation\laws.dm"
 #include "surfshack13\code\modules\cultivation\legendary_artifacts.dm"

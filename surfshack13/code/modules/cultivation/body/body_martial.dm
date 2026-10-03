@@ -30,6 +30,7 @@
 		to_chat(victim, span_warning("You brace against [user]'s [technique_name]."))
 		return FALSE
 	victim.apply_damage(damage, BRUTE)
+	cultivation_heavy_blow(victim, damage, user)
 	if(knockdown)
 		victim.Knockdown(knockdown)
 	log_combat(user, victim, "hit with [technique_name]")

@@ -320,6 +320,7 @@
 	new /obj/effect/temp_visual/kinetic_blast(get_turf(victim))
 	new /obj/effect/temp_visual/circle_wave/cultivation/gold(get_turf(victim))
 	victim.apply_damage(25 * cultivation_qi_power(owner), BRUTE, BODY_ZONE_CHEST, wound_bonus = 10)
+	cultivation_heavy_blow(victim, 25, owner)
 	victim.Shake(3, 3, 0.5 SECONDS)
 	if(!HAS_TRAIT(victim, TRAIT_PUSHIMMUNE) && victim.move_resist < MOVE_FORCE_OVERPOWERING)
 		victim.Knockdown(1 SECONDS)

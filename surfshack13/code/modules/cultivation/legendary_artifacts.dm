@@ -47,6 +47,7 @@
 		if(broke_defence)
 			victim.visible_message(span_danger("[source_name] shatters [victim]'s golden body like glass!"), span_userdanger("[source_name] cracks your tempered body open!"))
 	victim.apply_damage(damage * legendary_power(artifact), BRUTE, forced = TRUE, wound_bonus = 10)
+	cultivation_heavy_blow(victim, damage * legendary_power(artifact))
 	if(knockdown)
 		victim.Knockdown(knockdown)
 	log_combat(user, victim, "struck with [source_name]")

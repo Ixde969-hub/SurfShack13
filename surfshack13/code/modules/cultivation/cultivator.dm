@@ -517,7 +517,7 @@
 	if(source.stat == DEAD)
 		return
 	if(effective_realm() > REALM_MORTAL && qi < max_qi())
-		adjust_qi((0.25 + 0.1 * effective_realm()) * seconds_per_tick)
+		adjust_qi((0.25 + 0.1 * effective_realm()) * cultivation_qi_regen_multiplier(source) * seconds_per_tick)
 	core_sustain(source, seconds_per_tick)
 	if(pill_toxicity > 0)
 		pill_toxicity = max(pill_toxicity - 0.1 * seconds_per_tick, 0)

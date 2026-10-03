@@ -257,6 +257,7 @@
 	patient.heal_overall_damage(brute = amount, burn = round(amount * 1.25))
 	var/max_severity = realm >= REALM_GOLDEN_CORE ? WOUND_SEVERITY_CRITICAL : (realm >= REALM_FOUNDATION ? WOUND_SEVERITY_SEVERE : WOUND_SEVERITY_MODERATE)
 	cultivation_mend_wounds(patient, max_severity, 1)
+	cultivation_heal_internal_injury(patient, 1)
 	new /obj/effect/temp_visual/heal(get_turf(patient), "#5fd35f")
 	new /obj/effect/temp_visual/circle_wave/cultivation/wood(get_turf(patient))
 	to_chat(patient, span_nicegreen("Warm spring qi knits your wounds together."))

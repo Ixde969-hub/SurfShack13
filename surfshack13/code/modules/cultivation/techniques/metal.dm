@@ -447,6 +447,8 @@
 		victim.Shake(2, 2, 0.3 SECONDS)
 		if(!blocked)
 			cultivation_sever_limb(victim, 10 + 5 * caster_realm, caster_realm)
+			if(isliving(firer))
+				cultivation_heavy_blow(victim, damage, firer)
 		new /obj/effect/temp_visual/slash(get_turf(victim), victim, rand(10, 22), rand(10, 22), "#d8f0ff")
 
 /obj/effect/temp_visual/impact_effect/cultivation_sword_qi
