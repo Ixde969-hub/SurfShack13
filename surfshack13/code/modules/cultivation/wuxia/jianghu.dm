@@ -78,6 +78,15 @@ GLOBAL_LIST_EMPTY(jianghu_dishonor)
 		examine_list += span_notice("[source.p_They()] [source.p_are()] ranked #[jianghu_rank_of(mind)] in the Martial World Ranking.")
 	if(jianghu_is_dishonored(source))
 		examine_list += span_warning("[source.p_They()] recently interfered in an honor duel. Shameful.")
+	var/datum/sworn_bond/bond = sworn_bond_of(mind)
+	if(bond)
+		var/list/siblings = list()
+		for(var/datum/mind/member as anything in bond.members)
+			if(member != mind)
+				siblings += member.name
+		examine_list += span_notice("[source.p_They()] [source.p_are()] sworn sibling to [english_list(siblings)].")
+	if(sworn_is_oathbreaker(mind))
+		examine_list += span_warning("[source.p_They()] betrayed [source.p_their()] own sworn sibling. Oathbreaker.")
 
 // ===================== Honor duels =====================
 

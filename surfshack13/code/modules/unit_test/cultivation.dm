@@ -187,6 +187,20 @@
 	TEST_ASSERT_EQUAL(jianghu_rank_of(fighter_a.mind), 3, "Everyone below the upset didn't slide down.")
 	TEST_ASSERT(jianghu_refuses_challenge(new_body, fighter_b), "First Under Heaven accepted a challenge from an unranked fighter.")
 	TEST_ASSERT(!jianghu_refuses_challenge(fighter_a, fighter_b), "First Under Heaven refused a top-five challenger.")
+	// Sworn brotherhood: siblings near each other fight together, and turning on one breaks the oath
+	var/datum/sworn_bond/bond = new(list(fighter_a.mind, fighter_b.mind))
+	TEST_ASSERT(sworn_siblings(fighter_a, fighter_b), "Swearing didn't bind the two siblings.")
+	TEST_ASSERT(!sworn_siblings(fighter_a, fighter_c), "A stranger counted as a sworn sibling.")
+	bond.process(1)
+	TEST_ASSERT_NOTNULL(fighter_a.has_status_effect(/datum/status_effect/sworn_together), "Standing beside a sworn sibling gave no bonus.")
+	bond.betrayal(fighter_a, fighter_b)
+	TEST_ASSERT(QDELETED(bond), "Betrayal didn't break the oath.")
+	TEST_ASSERT(!sworn_siblings(fighter_a, fighter_b), "Siblings stayed bound after a betrayal.")
+	TEST_ASSERT(sworn_is_oathbreaker(fighter_a.mind), "The betrayer wasn't marked as an oathbreaker.")
+	TEST_ASSERT(fighter_a.mind in GLOB.sworn_oath_takers, "The betrayer can swear again.")
+	GLOB.sworn_oathbreakers -= fighter_a.mind
+	GLOB.sworn_oath_takers -= list(fighter_a.mind, fighter_b.mind)
+
 	GLOB.jianghu_ranking = old_ranking
 	GLOB.jianghu_ranking_pair_cooldowns = old_cooldowns
 
