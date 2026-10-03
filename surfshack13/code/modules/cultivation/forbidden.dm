@@ -20,6 +20,7 @@ GLOBAL_LIST_INIT(cultivation_forbidden_techniques, list(
 	/datum/action/cooldown/spell/pointed/cultivation/soul_search = REALM_FOUNDATION,
 	/datum/action/cooldown/spell/pointed/cultivation/corpse_puppet = REALM_GOLDEN_CORE,
 	/datum/action/cooldown/spell/cultivation/blood_escape = REALM_GOLDEN_CORE,
+	/datum/action/cooldown/spell/pointed/cultivation/exploding_heart_palm = REALM_GOLDEN_CORE,
 ))
 
 /// Is this mind a real antagonist (not just a fake antag datum like cultivator or a sect)?
@@ -81,6 +82,10 @@ GLOBAL_LIST_INIT(cultivation_forbidden_techniques, list(
 		. += span_notice("[other]: a body cultivator at [body_datum.stage_name()]. No qi at all, but that body...")
 	if(istype(other, /mob/living/basic/corpse_puppet))
 		. += span_danger("[other] is a corpse strung up with demonic qi.")
+	if(other.has_status_effect(/datum/status_effect/exploding_heart_stain))
+		. += span_danger("[other]'s palms are stained with the qi of the Five-Point Exploding Heart!")
+	if(other.has_status_effect(/datum/status_effect/exploding_heart))
+		. += span_danger("Five points of foreign qi are lodged around [other]'s heart, counting down!")
 
 /particles/cultivation/blood
 	icon_state = "ember"
@@ -635,3 +640,189 @@ GLOBAL_LIST_INIT(cultivation_forbidden_techniques, list(
 	new /obj/effect/temp_visual/circle_wave/cultivation/blood(get_turf(src))
 	qdel(src)
 
+
+// ===================== Five-Point Exploding Heart Palm =====================
+
+/datum/action/cooldown/spell/pointed/cultivation/exploding_heart_palm
+	name = "Five-Point Exploding Heart Palm"
+	desc = "Strike five points around the heart of someone beside you. After five steps (one more for every realm they stand above you) their heart bursts: \
+		heavy chest and heart damage, enough to put most people in critical condition. Standing still is safe. \
+		A cultivator's Acupoint Sealing on the chest, two cycles of meditation, a coronary bypass or a new heart undoes it. \
+		Armour stops your fingers, it can't be used in an honor duel, and your palms reek of it for five minutes."
+	cast_range = 1
+	cooldown_time = 3 MINUTES
+	qi_cost = 60
+
+/datum/action/cooldown/spell/pointed/cultivation/exploding_heart_palm/is_valid_target(atom/cast_on)
+	return ..() && iscarbon(cast_on)
+
+/datum/action/cooldown/spell/pointed/cultivation/exploding_heart_palm/before_cast(mob/living/carbon/cast_on)
+	. = ..()
+	if(. & SPELL_CANCEL_CAST)
+		return
+	if(cast_on.stat == DEAD)
+		owner.balloon_alert(owner, "no heart left to burst")
+		return . | SPELL_CANCEL_CAST
+	if(GLOB.jianghu_duels[owner] || GLOB.jianghu_duels[cast_on])
+		owner.balloon_alert(owner, "not in an honor duel!")
+		return . | SPELL_CANCEL_CAST
+	if(cast_on.has_status_effect(/datum/status_effect/exploding_heart))
+		owner.balloon_alert(owner, "already marked")
+		return . | SPELL_CANCEL_CAST
+
+/datum/action/cooldown/spell/pointed/cultivation/exploding_heart_palm/cast(mob/living/carbon/cast_on)
+	. = ..()
+	var/mob/living/user = owner
+	user.do_attack_animation(cast_on, ATTACK_EFFECT_PUNCH)
+	cultivation_demonic_taint(user, 6)
+	if(cast_on.run_armor_check(BODY_ZONE_CHEST, MELEE, silent = TRUE) >= 40)
+		playsound(cast_on, 'sound/items/weapons/cqchit1.ogg', 50, TRUE)
+		new /obj/effect/temp_visual/cultivation_spark(get_turf(cast_on), "#9a9a9a", 0, 2)
+		cast_on.visible_message(span_warning("[user] jabs five fingers at [cast_on]'s chest, but [cast_on.p_their()] armour turns them aside!"))
+		return
+	for(var/i in 0 to 4)
+		addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(exploding_heart_jab), cast_on, i), i * 0.12 SECONDS)
+	var/steps = 5 + max(cultivation_realm_of(cast_on) - cultivation_realm_of(user), 0) + round(body_group_level(cast_on, "heart") / 3)
+	cast_on.apply_status_effect(/datum/status_effect/exploding_heart, user, steps)
+	user.apply_status_effect(/datum/status_effect/exploding_heart_stain)
+	user.visible_message(span_danger("[user]'s fingers dart five times against [cast_on]'s chest, too fast to follow!"), span_notice("You plant five points of qi around [cast_on]'s heart. [steps] steps."))
+	log_combat(user, cast_on, "struck with the Five-Point Exploding Heart Palm")
+
+/// One of the five jabs, each landing on a different point of the plum blossom
+/proc/exploding_heart_jab(mob/living/victim, index)
+	if(QDELETED(victim))
+		return
+	var/static/list/points = list(list(0, 9), list(8, 3), list(5, -6), list(-5, -6), list(-8, 3))
+	var/list/point = points[index + 1]
+	new /obj/effect/temp_visual/cultivation_spark(get_turf(victim), "#ff2a2a", point[1], point[2])
+	playsound(victim, 'sound/items/weapons/cqchit1.ogg', 30 + 6 * index, TRUE, frequency = 1 + index * 0.08)
+
+/// Five points of demonic qi around the heart, counting the victim's steps
+/datum/status_effect/exploding_heart
+	id = "exploding_heart"
+	duration = STATUS_EFFECT_PERMANENT
+	tick_interval = STATUS_EFFECT_NO_TICK
+	status_type = STATUS_EFFECT_UNIQUE
+	alert_type = /atom/movable/screen/alert/status_effect/exploding_heart
+	/// Steps left before the heart bursts
+	var/steps_left = 5
+	/// Who struck the points, for the survivor and the logs
+	var/caster_name
+	var/datum/weakref/caster_ref
+	/// Meditation cycles spent dissolving the points
+	var/calm_cycles = 0
+	/// The glowing points on the chest
+	var/obj/effect/abstract/cultivation_vis/blossom
+
+/datum/status_effect/exploding_heart/on_creation(mob/living/new_owner, mob/living/caster, steps = 5)
+	steps_left = steps
+	caster_name = caster?.real_name || "someone"
+	caster_ref = WEAKREF(caster)
+	. = ..()
+	update_alert()
+
+/datum/status_effect/exploding_heart/on_apply()
+	RegisterSignal(owner, COMSIG_MOVABLE_MOVED, PROC_REF(on_step))
+	RegisterSignal(owner, COMSIG_ATOM_EXAMINE, PROC_REF(on_examine))
+	RegisterSignal(owner, COMSIG_CARBON_LOSE_ORGAN, PROC_REF(on_organ_lost))
+	blossom = cultivation_attach_vis(owner, 'surfshack13/icons/cultivation/cultivation_effects.dmi', "five_points", null, 32, 0, 230)
+	owner.add_filter("exploding_heart", 2, list("type" = "outline", "color" = "#8a0a0a", "size" = 1, "alpha" = 120))
+	to_chat(owner, span_userdanger("Five points around your heart burn like coals. Something is counting your steps... Stand still and find a cultivator to unseal it!"))
+	owner.playsound_local(get_turf(owner), 'sound/effects/singlebeat.ogg', 60, FALSE)
+	return TRUE
+
+/datum/status_effect/exploding_heart/on_remove()
+	UnregisterSignal(owner, list(COMSIG_MOVABLE_MOVED, COMSIG_ATOM_EXAMINE, COMSIG_CARBON_LOSE_ORGAN))
+	cultivation_detach_vis(owner, blossom)
+	blossom = null
+	owner.remove_filter("exploding_heart")
+
+/datum/status_effect/exploding_heart/proc/update_alert()
+	if(!linked_alert)
+		return
+	linked_alert.maptext = MAPTEXT_TINY_UNICODE("<span style='text-align:center; color:#ff4040'>[steps_left]</span>")
+	linked_alert.desc = "Five points of demonic qi are lodged around your heart. [steps_left] more step\s and it bursts. Standing still is safe. \
+		A cultivator's Acupoint Sealing on your chest, meditation, a coronary bypass or a new heart will undo it."
+
+/// Only steps you take yourself count, not being dragged or thrown
+/datum/status_effect/exploding_heart/proc/on_step(atom/movable/source, atom/old_loc, dir, forced)
+	SIGNAL_HANDLER
+	if(forced || owner.pulledby || owner.throwing || !isturf(owner.loc) || owner.loc == old_loc)
+		return
+	steps_left--
+	update_alert()
+	if(steps_left <= 0)
+		INVOKE_ASYNC(src, PROC_REF(burst))
+		return
+	// The heartbeat quickens as the end comes
+	playsound(owner, 'sound/effects/singlebeat.ogg', 30 + 10 * (5 - min(steps_left, 5)), FALSE, frequency = 1 + 0.15 * (5 - min(steps_left, 5)))
+	if(blossom)
+		animate(blossom, alpha = 255, time = 0.1 SECONDS)
+		animate(alpha = 230, time = 0.3 SECONDS)
+	if(steps_left <= 2)
+		to_chat(owner, span_userdanger("Your heart pounds against your ribs. [steps_left] more step\s..."))
+
+/datum/status_effect/exploding_heart/proc/burst()
+	if(QDELETED(owner))
+		return
+	var/mob/living/victim = owner
+	var/turf/here = get_turf(victim)
+	victim.visible_message(span_boldwarning("[victim] stops mid-step, clutches [victim.p_their()] chest, and blood bursts from five points around [victim.p_their()] heart!"), span_userdanger("Your heart bursts!"))
+	playsound(here, 'sound/effects/magic/demon_consume.ogg', 70, TRUE)
+	playsound(here, 'sound/effects/singlebeat.ogg', 90, TRUE, frequency = 0.6)
+	new /obj/effect/temp_visual/circle_wave/cultivation/blood(here)
+	for(var/direction in GLOB.alldirs)
+		if(prob(60))
+			new /obj/effect/temp_visual/dir_setting/bloodsplatter(here, direction)
+	victim.add_splatter_floor(here)
+	victim.apply_damage(35, BRUTE, BODY_ZONE_CHEST, wound_bonus = 20)
+	victim.adjustOrganLoss(ORGAN_SLOT_HEART, 45)
+	victim.Knockdown(3 SECONDS)
+	cultivation_add_internal_injury(victim, 2)
+	victim.log_message("had their heart burst by the Five-Point Exploding Heart Palm (struck by [caster_name])", LOG_ATTACK)
+	if(victim.stat != DEAD)
+		to_chat(victim, span_warning("Through the pain, you remember the hand that struck you: <b>[caster_name]</b>."))
+	qdel(src)
+
+/// The points dissolve. The victim always knows who struck them.
+/datum/status_effect/exploding_heart/proc/unseal(how)
+	owner.visible_message(span_notice("[how] The red points on [owner]'s chest fade."), span_nicegreen("The five points around your heart dissolve. You remember who struck them: <b>[caster_name]</b>."))
+	new /obj/effect/temp_visual/circle_wave/cultivation(get_turf(owner))
+	playsound(owner, 'sound/effects/singlebeat.ogg', 40, TRUE, frequency = 0.8)
+	qdel(src)
+
+/// Meditation slowly dissolves the foreign qi
+/datum/status_effect/exploding_heart/proc/meditation_cycle()
+	calm_cycles++
+	if(calm_cycles >= 2)
+		unseal("[owner] exhales a thin thread of black qi.")
+		return TRUE
+	to_chat(owner, span_notice("You begin to push the foreign qi out of your heart. One more cycle..."))
+	return FALSE
+
+/datum/status_effect/exploding_heart/proc/on_organ_lost(mob/living/carbon/source, obj/item/organ/lost, special)
+	SIGNAL_HANDLER
+	if(istype(lost, /obj/item/organ/heart))
+		INVOKE_ASYNC(src, PROC_REF(unseal), "The heart that held the palm's qi is gone.")
+
+/datum/status_effect/exploding_heart/proc/on_examine(datum/source, mob/user, list/examine_list)
+	SIGNAL_HANDLER
+	examine_list += span_danger("Five red points glow around [owner.p_their()] heart, arranged like a plum blossom.")
+
+/atom/movable/screen/alert/status_effect/exploding_heart
+	name = "Five-Point Exploding Heart"
+	desc = "Your heart is counting down."
+	icon_state = "highbloodpressure"
+
+/// A fresh Exploding Heart Palm leaves its stain on the hands that struck it
+/datum/status_effect/exploding_heart_stain
+	id = "exploding_heart_stain"
+	alert_type = null
+	duration = 5 MINUTES
+	status_type = STATUS_EFFECT_REFRESH
+
+/// A coronary bypass lets out the palm's qi along with the blockage
+/datum/surgery_step/coronary_bypass/success(mob/user, mob/living/carbon/target, target_zone, obj/item/tool, datum/surgery/surgery, default_display_results = FALSE)
+	. = ..()
+	var/datum/status_effect/exploding_heart/palm = target.has_status_effect(/datum/status_effect/exploding_heart)
+	palm?.unseal("[user] drains a trickle of black blood from [target]'s heart.")

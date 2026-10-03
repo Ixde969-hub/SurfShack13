@@ -78,6 +78,8 @@
 		return TRUE
 
 	new /obj/effect/temp_visual/circle_wave/cultivation(get_turf(user))
+	var/datum/status_effect/exploding_heart/palm = user.has_status_effect(/datum/status_effect/exploding_heart)
+	palm?.meditation_cycle()
 	// Circulating qi mends the body. A good mat in good surroundings mends it far more.
 	var/heal = report.has_mat ? round(4 * report.multiplier, 0.5) : 1
 	if(heal && (user.getBruteLoss() || user.getFireLoss() || user.getToxLoss()))
@@ -113,7 +115,7 @@
 		for(var/line in report.lines)
 			to_chat(user, line)
 	// Stop once there's nothing left to do
-	if(cultivator.qi >= cultivator.max_qi() && !cultivator.pending_insight && !cultivator.instability && !dantian.cracked && !user.getBruteLoss() && !user.getFireLoss() && !cultivation_internal_injury_stacks(user))
+	if(cultivator.qi >= cultivator.max_qi() && !cultivator.pending_insight && !cultivator.instability && !dantian.cracked && !user.getBruteLoss() && !user.getFireLoss() && !cultivation_internal_injury_stacks(user) && !user.has_status_effect(/datum/status_effect/exploding_heart))
 		to_chat(user, span_notice("Your qi is full and your mind is clear."))
 		return FALSE
 	return TRUE
@@ -413,7 +415,7 @@
 
 /datum/action/cooldown/spell/pointed/cultivation/acupoint
 	name = "Acupoint Sealing"
-	desc = "Jab a pressure point. Aim at the mouth to silence, at an arm to numb it, or at the legs to slow them. Armour can stop your fingers."
+	desc = "Jab a pressure point. Aim at the mouth to silence, at an arm to numb it, or at the legs to slow them. Aim at the chest of someone struck by the Five-Point Exploding Heart Palm to unseal it. Armour can stop your fingers."
 	button_icon = 'icons/mob/actions/actions_items.dmi'
 	button_icon_state = "neckchop"
 	cast_range = 1
@@ -436,6 +438,11 @@
 		cast_on.visible_message(span_warning("[user] jabs at [cast_on], but [user.p_their()] fingers can't find the acupoint through the armour!"))
 		return
 	new /obj/effect/temp_visual/cultivation_spark(get_turf(cast_on), null, jab_offset[1], jab_offset[2])
+	// Sealing the points around a marked heart undoes the Five-Point Exploding Heart Palm instead
+	var/datum/status_effect/exploding_heart/palm = cast_on.has_status_effect(/datum/status_effect/exploding_heart)
+	if(palm && zone == BODY_ZONE_CHEST)
+		palm.unseal("[user] presses five points on [cast_on]'s chest in reverse order.")
+		return
 	var/realm_gap = cultivation_realm_of(user) - cultivation_realm_of(cast_on)
 	var/duration = clamp(4 SECONDS + realm_gap * 1 SECONDS, 2 SECONDS, 7 SECONDS)
 	switch(zone)
