@@ -362,7 +362,7 @@ GLOBAL_LIST_EMPTY(cultivation_formations)
 	addtimer(CALLBACK(src, PROC_REF(end_inferno), cast_on), 12 SECONDS)
 
 /datum/action/cooldown/spell/cultivation/sea_of_flames/proc/wave(mob/living/user, wave_index)
-	if(QDELETED(user) || user.stat == DEAD)
+	if(QDELETED(user) || user.stat == DEAD || user.has_status_effect(/datum/status_effect/fan_quenched))
 		return
 	var/list/radii = waves[wave_index]
 	var/turf/center = get_turf(user)
@@ -388,7 +388,7 @@ GLOBAL_LIST_EMPTY(cultivation_formations)
 
 /// The sea keeps burning in random spots for a while
 /datum/action/cooldown/spell/cultivation/sea_of_flames/proc/burning_sea(mob/living/user, pulses_left)
-	if(QDELETED(user) || user.stat == DEAD || pulses_left <= 0)
+	if(QDELETED(user) || user.stat == DEAD || pulses_left <= 0 || user.has_status_effect(/datum/status_effect/fan_quenched))
 		return
 	var/turf/center = get_turf(user)
 	var/list/candidates = list()

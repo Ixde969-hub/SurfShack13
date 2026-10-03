@@ -132,6 +132,9 @@
 	user.remove_filter("furnace_burst")
 	if(QDELETED(user) || user.stat == DEAD)
 		return
+	if(user.has_status_effect(/datum/status_effect/fan_quenched))
+		user.visible_message(span_notice("The heat around [user] gutters out in the wind."))
+		return
 	playsound(user, 'sound/effects/magic/fireball.ogg', 60, TRUE)
 	new /obj/effect/temp_visual/circle_wave/cultivation/fire(get_turf(user))
 	user.Shake(2, 2, 0.5 SECONDS)
