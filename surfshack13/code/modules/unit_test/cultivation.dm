@@ -90,6 +90,7 @@
 	body_datum.tempering = BODY_TEMPERING_CAP
 	body_datum.forge_part(trainee_chest, BODY_TEMPERING_CAP)
 	TEST_ASSERT_EQUAL(body_part_level(trainee, BODY_ZONE_CHEST), 1, "Forging pushed a limb past its cap.")
+	TEST_ASSERT_EQUAL(body_datum.tempering, BODY_TEMPERING_CAP - (BODY_PART_COST(1) + BODY_PART_COST(2) - 1), "Forging a capped limb threw away tempering it couldn't hold.")
 	body_datum.admin_stage_up()
 	TEST_ASSERT_EQUAL(body_datum.stage, 1, "Mortal didn't reach Copper Skin.")
 	TEST_ASSERT(!body_datum.can_attempt_tribulation(), "A mortal can go past Copper Skin.")

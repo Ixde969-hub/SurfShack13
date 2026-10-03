@@ -260,6 +260,14 @@ GLOBAL_LIST_INIT(body_part_powers, list(
 		applied_hunger_factor = new_factor
 	level = new_level
 
+/// How much tempering this part can still take before it's full for a cap: the levels left to reach it, plus what it can bank past it
+/datum/component/body_tempering/proc/room_until(cap)
+	if(level >= cap)
+		return 0
+	. = BODY_PART_COST(cap + 1) - 1 - progress
+	for(var/next_level in (level + 1) to cap)
+		. += BODY_PART_COST(next_level)
+
 /// Pour tempering in. Returns how many levels were gained.
 /datum/component/body_tempering/proc/add_progress(amount, cap)
 	if(level >= cap)
@@ -563,7 +571,10 @@ GLOBAL_LIST_INIT(body_part_powers, list(
 /// Pour pending tempering into one limb or organ. Returns levels gained.
 /datum/antagonist/body_cultivator/proc/forge_part(obj/item/part, amount)
 	var/datum/component/body_tempering/part_tempering = part.GetComponent(/datum/component/body_tempering) || part.AddComponent(/datum/component/body_tempering)
-	amount = min(amount, tempering)
+	// Only take what the part can hold, so the rest stays pending for the next part
+	amount = min(amount, tempering, part_tempering.room_until(part_cap()))
+	if(amount <= 0)
+		return 0
 	tempering -= amount
 	var/gained = part_tempering.add_progress(amount, part_cap())
 	if(gained)
