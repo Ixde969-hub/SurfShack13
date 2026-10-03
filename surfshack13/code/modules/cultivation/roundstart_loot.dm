@@ -45,5 +45,8 @@
 	if(length(gym_turfs))
 		new /obj/item/book/granter/body_manual(pick(gym_turfs))
 	heavenly_treasure_start()
+	// Legendary artifacts lying unclaimed give themselves away to cultivators
+	addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(legendary_artifact_omen)), 8 MINUTES)
+	addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(legendary_artifact_omen)), 20 MINUTES)
 
 #undef CULTIVATION_MAINT_MANUALS

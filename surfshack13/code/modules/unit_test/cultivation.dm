@@ -113,6 +113,25 @@
 	TEST_ASSERT_EQUAL(trainee.maxHealth, base_health, "Losing body cultivation didn't remove its health.")
 	TEST_ASSERT(!HAS_TRAIT(trainee, TRAIT_QUICKER_CARRY), "Body part powers survived losing body cultivation.")
 
+	// Legendary artifacts: each answers the body path its own way
+	var/mob/living/carbon/human/consistent/iron_body = allocate(/mob/living/carbon/human/consistent)
+	iron_body.mind_initialize()
+	var/datum/antagonist/body_cultivator/iron_datum = iron_body.mind.add_antag_datum(/datum/antagonist/body_cultivator)
+	iron_datum.commit()
+	iron_datum.admin_stage_up()
+	iron_datum.admin_stage_up()
+	var/obj/item/cultivation_artifact/plantain_fan/fan = allocate(/obj/item/cultivation_artifact/plantain_fan)
+	var/obj/item/cultivation_artifact/heaven_reliant/heaven_sword = allocate(/obj/item/cultivation_artifact/heaven_reliant)
+	iron_body.apply_status_effect(/datum/status_effect/body_iron_shirt)
+	legendary_hit(trainee, iron_body, 1, 0, "test", fan)
+	TEST_ASSERT_NOTNULL(iron_body.has_status_effect(/datum/status_effect/body_iron_shirt), "The Plantain Fan cut through Iron Shirt.")
+	legendary_hit(trainee, iron_body, 1, 0, "test", heaven_sword)
+	TEST_ASSERT_NULL(iron_body.has_status_effect(/datum/status_effect/body_iron_shirt), "The Heaven Reliant Sword didn't cut through Iron Shirt.")
+	// The gourd only takes a real answer
+	TEST_ASSERT(gourd_is_answer("Yes?", iron_body), "A question back didn't count as answering the gourd.")
+	TEST_ASSERT(gourd_is_answer("what do you want", iron_body), "'What' didn't count as answering the gourd.")
+	TEST_ASSERT(!gourd_is_answer("the engine is on fire", iron_body), "Unrelated speech counted as answering the gourd.")
+
 	// Body swap: knowledge follows the mind, power stays in the body
 	var/mob/living/carbon/human/consistent/new_body = allocate(/mob/living/carbon/human/consistent)
 	var/obj/item/organ/dantian/old_dantian = new_body.get_organ_slot(ORGAN_SLOT_DANTIAN)

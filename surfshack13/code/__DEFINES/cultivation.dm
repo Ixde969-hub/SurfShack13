@@ -106,6 +106,14 @@ GLOBAL_LIST_INIT(cultivation_overcomes, list(
 /// Highest refinement grade a bound artifact can reach (Dao-grade)
 #define MAX_ARTIFACT_REFINEMENT 5
 
+// How a legendary artifact deals with body cultivators (legendary_traits), see legendary_artifacts.dm
+/// Cracks Iron Shirt and the Vajra Golden Body off whoever it hits
+#define LEGENDARY_BREAKS_DEFENCE (1<<0)
+/// Every hit knocks the breath out of a body cultivator (exhaustion)
+#define LEGENDARY_WEARS_DOWN (1<<1)
+/// Hits harder the more tempered the body is
+#define LEGENDARY_CRUSHES_TEMPERED (1<<2)
+
 /// Insight consolidated past the peak of Nascent Soul before Ascension can be attempted
 #define CULTIVATION_ASCENSION_PROGRESS 400
 
