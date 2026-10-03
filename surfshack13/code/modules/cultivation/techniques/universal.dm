@@ -12,6 +12,8 @@
 	/// Sessions spent without a dantian, three regrows one
 	var/dantian_regrowth = 0
 	var/meditating = FALSE
+	/// Cycles finished this session, internal injuries mend every second one
+	var/session_cycles = 0
 
 /datum/action/cooldown/spell/cultivation/meditate/can_cast_spell(feedback = TRUE)
 	// Meditating is how you regrow a lost dantian, so skip the usual dantian check
@@ -46,6 +48,7 @@
 		if(!do_after(user, 10 SECONDS, user, IGNORE_HELD_ITEM))
 			break
 		cycles++
+		session_cycles = cycles
 		if(!meditation_cycle(user, cultivator, report, cycles == 1))
 			break
 	user.remove_filter("meditation_glow")
@@ -95,6 +98,9 @@
 	var/gained = cultivator.consolidate(report.multiplier)
 	cultivator.adjust_qi(cultivator.max_qi() * (report.has_mat ? 0.4 : 0.25))
 	cultivator.adjust_instability(report.has_mat ? -15 : -8)
+	// Circulating qi slowly smooths torn meridians
+	if(!(session_cycles % 2) && cultivation_heal_internal_injury(user, 1))
+		to_chat(user, span_notice("Your circulating qi soothes your internal injuries."))
 	if(dantian.cracked && report.has_mat)
 		if(dantian.mend_step())
 			to_chat(user, span_boldnotice("The cracks in your core have sealed!"))
@@ -107,7 +113,7 @@
 		for(var/line in report.lines)
 			to_chat(user, line)
 	// Stop once there's nothing left to do
-	if(cultivator.qi >= cultivator.max_qi() && !cultivator.pending_insight && !cultivator.instability && !dantian.cracked && !user.getBruteLoss() && !user.getFireLoss())
+	if(cultivator.qi >= cultivator.max_qi() && !cultivator.pending_insight && !cultivator.instability && !dantian.cracked && !user.getBruteLoss() && !user.getFireLoss() && !cultivation_internal_injury_stacks(user))
 		to_chat(user, span_notice("Your qi is full and your mind is clear."))
 		return FALSE
 	return TRUE

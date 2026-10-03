@@ -121,6 +121,7 @@
 		return
 	body_datum.add_exhaustion(exhaustion_cost)
 	caster.adjust_nutrition(-exhaustion_cost / 4)
+	cultivation_injury_backlash(caster)
 
 // ===================== Forge the Body =====================
 
@@ -435,6 +436,7 @@
 /datum/action/cooldown/spell/body_art/breath_of_renewal/proc/renew(mob/living/user, datum/antagonist/body_cultivator/body_datum)
 	var/heal = 5 + 2 * body_datum.stage + body_group_level(user, "heart")
 	user.heal_overall_damage(brute = heal, burn = heal)
+	cultivation_heal_internal_injury(user, 1)
 	playsound(user, 'sound/effects/singlebeat.ogg', 40, TRUE)
 	new /obj/effect/temp_visual/heal(get_turf(user), "#e0a050")
 	if(body_datum.stage >= 5 && iscarbon(user))

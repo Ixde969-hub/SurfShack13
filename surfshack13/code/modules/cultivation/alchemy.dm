@@ -61,6 +61,8 @@ GLOBAL_LIST_INIT(cultivation_pill_grades, list(
 /obj/item/cultivation_pill/proc/consume(mob/living/eater, mob/living/feeder)
 	eater.visible_message(span_notice("[eater] swallows [src]."), span_notice("You swallow [src]."))
 	playsound(eater, 'sound/items/eatfood.ogg', 40, TRUE)
+	// Any pill settles torn meridians a little; finely refined ones more
+	cultivation_heal_internal_injury(eater, (grade == PILL_GRADE_HIGH || grade == PILL_GRADE_SPIRIT) ? 2 : 1)
 	var/datum/antagonist/cultivator/cultivator = IS_CULTIVATOR(eater)
 	var/datum/antagonist/body_cultivator/body_datum = IS_BODY_CULTIVATOR(eater)
 	if(cultivator)

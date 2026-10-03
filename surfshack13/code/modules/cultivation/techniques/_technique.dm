@@ -137,6 +137,8 @@
 		return
 	cultivator.adjust_qi(-cultivation_actual_cost(cultivator, technique, base_cost))
 	cultivator.on_technique_used(technique)
+	if(isliving(technique.owner))
+		cultivation_injury_backlash(technique.owner)
 	// Practice makes perfect, a little
 	cultivator.gain_insight(1, "practice_[technique.type]", cooldown = 90 SECONDS, silent = TRUE)
 	// Counterfeit manuals teach you to shout the name of every move. Like in the novels.

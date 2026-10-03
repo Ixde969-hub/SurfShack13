@@ -122,6 +122,25 @@
 	TEST_ASSERT_EQUAL(cultivator.effective_realm(), REALM_MORTAL, "A body without a dantian can still channel qi.")
 	TEST_ASSERT_EQUAL(cultivator.realm, REALM_FOUNDATION, "The mind forgot its realm in a new body.")
 
+	// Internal injury: heavy cultivation blows stack up to three on a cultivator, one on a mortal, and pills mend them
+	cultivation_heavy_blow(new_body, 30, null)
+	cultivation_heavy_blow(new_body, 30, null)
+	cultivation_heavy_blow(new_body, 30, null)
+	cultivation_heavy_blow(new_body, 30, null)
+	TEST_ASSERT_EQUAL(cultivation_internal_injury_stacks(new_body), 3, "Internal injury didn't stack to three on a cultivator.")
+	cultivation_heavy_blow(new_body, 5, null)
+	TEST_ASSERT_EQUAL(cultivation_internal_injury_stacks(new_body), 3, "A light blow changed internal injury.")
+	TEST_ASSERT_EQUAL(cultivation_qi_regen_multiplier(new_body), 0.25, "Three stacks of internal injury didn't slow qi regeneration.")
+	var/obj/item/cultivation_pill/qi_gathering/mending_pill = allocate(/obj/item/cultivation_pill/qi_gathering)
+	mending_pill.set_grade(PILL_GRADE_SPIRIT)
+	mending_pill.consume(new_body, new_body)
+	TEST_ASSERT_EQUAL(cultivation_internal_injury_stacks(new_body), 1, "A spirit-grade pill didn't mend two stacks of internal injury.")
+	cultivation_heal_internal_injury(new_body, 1)
+	TEST_ASSERT_NULL(new_body.has_status_effect(/datum/status_effect/internal_injury), "Healing the last stack didn't end the internal injury.")
+	cultivation_heavy_blow(trainee, 30, null)
+	cultivation_heavy_blow(trainee, 30, null)
+	TEST_ASSERT_EQUAL(cultivation_internal_injury_stacks(trainee), 1, "A mortal took more than one stack of internal injury.")
+
 	// Removal cleans up techniques
 	new_body.mind.remove_antag_datum(/datum/antagonist/cultivator)
 	TEST_ASSERT_NULL(locate(/datum/action/cooldown/spell/cultivation/meditate) in new_body.actions, "Techniques survived losing cultivation.")
