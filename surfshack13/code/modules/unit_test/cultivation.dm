@@ -132,6 +132,19 @@
 	TEST_ASSERT(gourd_is_answer("what do you want", iron_body), "'What' didn't count as answering the gourd.")
 	TEST_ASSERT(!gourd_is_answer("the engine is on fire", iron_body), "Unrelated speech counted as answering the gourd.")
 
+	// Linglong Pagoda seals someone away and lets them out again
+	var/obj/item/cultivation_artifact/linglong_pagoda/pagoda = allocate(/obj/item/cultivation_artifact/linglong_pagoda)
+	pagoda.seal(trainee, null)
+	TEST_ASSERT_EQUAL(trainee.loc, pagoda, "The pagoda didn't seal its target inside.")
+	pagoda.release()
+	TEST_ASSERT(isturf(trainee.loc), "The pagoda didn't let its prisoner out.")
+	// The Green Dragon Crescent Blade follows its wielder's face
+	var/obj/item/cultivation_artifact/green_dragon_blade/guandao = allocate(/obj/item/cultivation_artifact/green_dragon_blade)
+	var/plain_bite = guandao.honour_damage(iron_body)
+	GLOB.jianghu_face[iron_body.mind] = 20
+	TEST_ASSERT(guandao.honour_damage(iron_body) > plain_bite, "Face didn't sharpen the Green Dragon Crescent Blade.")
+	GLOB.jianghu_face -= iron_body.mind
+
 	// Body swap: knowledge follows the mind, power stays in the body
 	var/mob/living/carbon/human/consistent/new_body = allocate(/mob/living/carbon/human/consistent)
 	var/obj/item/organ/dantian/old_dantian = new_body.get_organ_slot(ORGAN_SLOT_DANTIAN)

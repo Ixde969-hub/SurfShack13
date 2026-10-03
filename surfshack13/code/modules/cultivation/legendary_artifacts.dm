@@ -1145,6 +1145,12 @@ GLOBAL_LIST_EMPTY(jianghu_dragon_sabers)
 		/obj/item/cultivation_artifact/plantain_fan = 1,
 		/obj/item/cultivation_artifact/bagua_mirror = 1,
 		/obj/item/cultivation_artifact/qiankun_pouch = 1,
+		/obj/item/cultivation_artifact/xuanyuan_sword = 1,
+		/obj/item/cultivation_artifact/green_dragon_blade = 1,
+		/obj/item/cultivation_artifact/seven_star_sword = 1,
+		/obj/item/cultivation_artifact/linglong_pagoda = 1,
+		/obj/item/cultivation_artifact/universe_ring = 1,
+		/obj/item/clothing/shoes/wind_fire_wheels = 1,
 	)
 
 /obj/effect/spawner/legendary_pair

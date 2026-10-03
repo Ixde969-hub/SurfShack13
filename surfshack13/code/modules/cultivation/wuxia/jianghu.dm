@@ -509,7 +509,7 @@ GLOBAL_LIST_EMPTY(jianghu_sects)
 			rival_names += rival.name
 		. += span_warning("Sworn rivals: [english_list(rival_names)].")
 	. += span_notice("Sect mission: [sect.mission_text()][sect.mission_type ? " ([sect.mission_progress]/[sect.mission_goal])" : ""]. Missions completed: [sect.missions_completed].")
-	. += span_notice("Members meditating near the plaque cultivate faster. Others can click it to ask to join. The Sect Master can proclaim a Martial Tournament here.")
+	. += span_notice("Members meditating near the plaque cultivate faster. Others can click it to ask to join. The Sect Master can proclaim a Martial Tournament or issue sect swords (one per member) here.")
 	. += span_boldnotice("Martial World Ranking:")
 	for(var/line in jianghu_ranking_lines())
 		. += span_notice(line)
@@ -528,9 +528,11 @@ GLOBAL_LIST_EMPTY(jianghu_sects)
 	return TRUE
 
 /obj/structure/sect_plaque/proc/master_menu(mob/living/user)
-	var/choice = tgui_alert(user, "Current mission: [sect.mission_text()].", "[sect.name]", list("Bow", "Proclaim Martial Tournament"))
+	var/choice = tgui_alert(user, "Current mission: [sect.mission_text()]. Sect swords issued: [sect.jian_issued]/[length(sect.members)].", "[sect.name]", list("Bow", "Issue a sect jian", "Proclaim Martial Tournament"))
 	if(choice == "Proclaim Martial Tournament")
 		proclaim_tournament(user)
+	else if(choice == "Issue a sect jian")
+		issue_jian(user)
 	else if(choice == "Bow")
 		to_chat(user, span_notice("You bow to your sect's plaque."))
 
