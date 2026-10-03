@@ -141,6 +141,25 @@
 	cultivation_heavy_blow(trainee, 30, null)
 	TEST_ASSERT_EQUAL(cultivation_internal_injury_stacks(trainee), 1, "A mortal took more than one stack of internal injury.")
 
+	// Five-Point Exploding Heart Palm: counts only the victim's own steps, bursts at zero, and can be unsealed
+	var/mob/living/carbon/human/consistent/palm_victim = allocate(/mob/living/carbon/human/consistent)
+	var/turf/elsewhere = get_step(palm_victim, NORTH) || get_step(palm_victim, SOUTH)
+	palm_victim.apply_status_effect(/datum/status_effect/exploding_heart, new_body, 3)
+	var/datum/status_effect/exploding_heart/palm = palm_victim.has_status_effect(/datum/status_effect/exploding_heart)
+	TEST_ASSERT_NOTNULL(palm, "The Exploding Heart Palm didn't mark its victim.")
+	palm.on_step(palm_victim, elsewhere, NORTH, TRUE)
+	TEST_ASSERT_EQUAL(palm.steps_left, 3, "Being moved by force counted as a step.")
+	palm.on_step(palm_victim, elsewhere, NORTH, FALSE)
+	TEST_ASSERT_EQUAL(palm.steps_left, 2, "A step wasn't counted.")
+	palm.unseal("Test.")
+	TEST_ASSERT_NULL(palm_victim.has_status_effect(/datum/status_effect/exploding_heart), "Unsealing didn't remove the palm.")
+	var/health_before = palm_victim.health
+	palm_victim.apply_status_effect(/datum/status_effect/exploding_heart, new_body, 1)
+	palm = palm_victim.has_status_effect(/datum/status_effect/exploding_heart)
+	palm.burst()
+	TEST_ASSERT(palm_victim.health < health_before, "The heart burst didn't hurt.")
+	TEST_ASSERT_NULL(palm_victim.has_status_effect(/datum/status_effect/exploding_heart), "The palm lingered after bursting.")
+
 	// Removal cleans up techniques
 	new_body.mind.remove_antag_datum(/datum/antagonist/cultivator)
 	TEST_ASSERT_NULL(locate(/datum/action/cooldown/spell/cultivation/meditate) in new_body.actions, "Techniques survived losing cultivation.")
