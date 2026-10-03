@@ -214,6 +214,21 @@
 	TEST_ASSERT_EQUAL(master_datum.realm, REALM_QI_CONDENSATION, "The master kept their realm after passing it on.")
 	TEST_ASSERT_NULL(GLOB.cultivation_heirs[new_body.mind], "The heir stayed named after inheriting.")
 
+	// Heavenly treasure: eating the spirit herb fills the foundation
+	var/progress_before = master_datum.progress
+	var/obj/item/spirit_herb/treasure = allocate(/obj/item/spirit_herb)
+	treasure.attack_self(new_body)
+	TEST_ASSERT(master_datum.progress > progress_before, "The spirit herb didn't fill the foundation.")
+
+	// Concealment Art: a hidden demonic cultivator gives nothing away to Spiritual Sense
+	master_datum.become_demonic(DEMONIC_DISCIPLE)
+	TEST_ASSERT(length(cultivation_sense_forbidden(new_body)), "Spiritual Sense missed demonic qi.")
+	new_body.apply_status_effect(/datum/status_effect/concealed_cultivation)
+	TEST_ASSERT(!length(cultivation_sense_forbidden(new_body)), "Concealment didn't hide demonic qi.")
+	var/datum/status_effect/concealed_cultivation/concealed = cultivation_is_concealed(new_body)
+	concealed.reveal(null)
+	TEST_ASSERT(!cultivation_is_concealed(new_body), "Revealing didn't end the concealment.")
+
 	GLOB.jianghu_ranking = old_ranking
 	GLOB.jianghu_ranking_pair_cooldowns = old_cooldowns
 

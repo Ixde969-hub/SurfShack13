@@ -44,5 +44,6 @@
 				gym_turfs += gym_floor
 	if(length(gym_turfs))
 		new /obj/item/book/granter/body_manual(pick(gym_turfs))
+	heavenly_treasure_start()
 
 #undef CULTIVATION_MAINT_MANUALS

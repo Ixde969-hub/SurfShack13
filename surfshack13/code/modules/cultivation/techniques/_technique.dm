@@ -139,6 +139,10 @@
 	cultivator.on_technique_used(technique)
 	if(isliving(technique.owner))
 		cultivation_injury_backlash(technique.owner)
+		// Any technique but the concealment itself gives a hidden cultivator away
+		var/datum/status_effect/concealed_cultivation/concealed = cultivation_is_concealed(technique.owner)
+		if(concealed && !istype(technique, /datum/action/cooldown/spell/cultivation/concealment))
+			concealed.reveal(null)
 	// Practice makes perfect, a little
 	cultivator.gain_insight(1, "practice_[technique.type]", cooldown = 90 SECONDS, silent = TRUE)
 	// Counterfeit manuals teach you to shout the name of every move. Like in the novels.

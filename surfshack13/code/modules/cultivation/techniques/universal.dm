@@ -97,7 +97,10 @@
 	if(carried_artifact && get(carried_artifact, /mob/living) == user)
 		var/datum/component/cultivation_artifact/bond = carried_artifact.GetComponent(/datum/component/cultivation_artifact)
 		bond?.add_refinement(1, user)
-	var/gained = cultivator.consolidate(report.multiplier)
+	// The station's dangerous wonders: supermatter, fire, lightning
+	var/station_bonus = cultivation_station_qi_cycle(user, cultivator)
+	var/forced_bonus = cultivation_forced_cycle(user, cultivator)
+	var/gained = cultivator.consolidate((report.multiplier + station_bonus) * (1 + forced_bonus))
 	cultivator.adjust_qi(cultivator.max_qi() * (report.has_mat ? 0.4 : 0.25))
 	cultivator.adjust_instability(report.has_mat ? -15 : -8)
 	// Circulating qi slowly smooths torn meridians
@@ -192,7 +195,7 @@
 	new /obj/effect/temp_visual/circle_wave/cultivation/sense(get_turf(cast_on))
 	var/list/lines = list(span_boldnotice("You extend your spiritual sense..."))
 	for(var/mob/living/other in range(7, cast_on))
-		if(other == cast_on)
+		if(other == cast_on || cultivation_is_concealed(other))
 			continue
 		var/datum/antagonist/cultivator/other_cultivator = IS_CULTIVATOR(other)
 		if(other_cultivator)
@@ -210,6 +213,7 @@
 			lines += span_notice("[thing] [isturf(thing.loc) ? "" : "(hidden) "]hums with qi.")
 	var/datum/cultivation_site_report/report = cultivation_evaluate_site(cast_on, cultivator)
 	lines += report.lines
+	lines += cultivation_station_qi_lines(get_turf(cast_on))
 	lines += span_notice("Meditation multiplier here: x[round(report.multiplier, 0.01)]. Breakthrough readiness modifier: [report.readiness_bonus >= 0 ? "+" : ""][report.readiness_bonus].")
 	to_chat(cast_on, boxed_message(lines.Join("<br>")))
 	if(cultivator.effective_realm() >= REALM_GOLDEN_CORE)
