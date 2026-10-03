@@ -20,8 +20,6 @@
 /// Trait source for benefits that come from specific limbs' tempering
 #define BODY_PART_TRAIT_SOURCE "body_cultivation_parts"
 
-/// Tempering needed to raise a limb to a level
-#define BODY_PART_COST(level) (2 + (level))
 
 /// The six limbs that are tempered
 GLOBAL_LIST_INIT(body_tempered_zones, list(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG))
@@ -375,6 +373,7 @@ GLOBAL_LIST_INIT(body_part_powers, list(
 		/datum/action/cooldown/spell/body_art/forge_body = 0,
 		/datum/action/cooldown/spell/body_art/body_breakthrough = 0,
 		/datum/action/cooldown/spell/body_art/breath_of_renewal = 1,
+		/datum/action/cooldown/name_heir = 1,
 		/datum/action/cooldown/spell/body_art/iron_shirt = 2,
 		/datum/action/cooldown/spell/pointed/body_art/mountain_leap = 2,
 		/datum/action/cooldown/spell/pointed/body_art/shattering_fist = 3,
@@ -758,6 +757,8 @@ GLOBAL_LIST_INIT(body_part_powers, list(
 /datum/antagonist/body_cultivator/proc/on_death(mob/living/source, gibbed)
 	SIGNAL_HANDLER
 	tribulation?.cancel()
+	// Runs before the Eternal Heart claims its revival, so it can tell whether one is coming
+	INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(cultivation_pass_on), source, gibbed)
 	if(gibbed || body_group_level(source, "heart") < 9)
 		return
 	if(!COOLDOWN_FINISHED(src, eternal_heart_cooldown))

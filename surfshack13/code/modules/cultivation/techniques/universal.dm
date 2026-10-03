@@ -405,6 +405,7 @@
 			to_chat(disciple, span_notice("You already know this law."))
 		return
 	if(disciple_datum.learn_law(law.type, law.counterfeit))
+		master_datum.disciples |= disciple.mind
 		master_datum.gain_insight(10, INSIGHT_SOURCE_TEACHING, cooldown = 5 MINUTES)
 		to_chat(master, span_notice("You have taken [disciple] as a disciple."))
 		var/datum/jianghu_sect/sect = jianghu_sect_of(master.mind)

@@ -494,6 +494,7 @@ GLOBAL_LIST_INIT(cultivation_forbidden_techniques, list(
 	var/datum/antagonist/cultivator/disciple_datum = IS_CULTIVATOR(disciple) || disciple.mind.add_antag_datum(/datum/antagonist/cultivator)
 	disciple_datum.become_demonic(DEMONIC_DISCIPLE)
 	var/datum/antagonist/cultivator/master_datum = IS_CULTIVATOR(master)
+	master_datum?.disciples |= disciple.mind
 	master_datum?.gain_insight(10, INSIGHT_SOURCE_TEACHING, cooldown = 5 MINUTES)
 	to_chat(master, span_notice("You have taken [disciple] as a disciple of the Demonic Path."))
 	master.log_message("transmitted the Demonic Path to [key_name(disciple)]", LOG_GAME)
