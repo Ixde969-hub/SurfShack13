@@ -72,6 +72,10 @@ GLOBAL_LIST_EMPTY(jianghu_dishonor)
 		examine_list += span_notice("[source.p_They()] [source.p_are()] [sect.rank_of(mind)] of the <b>[sect.name]</b>.[relation]")
 	if(GLOB.jianghu_champion == mind)
 		examine_list += span_boldnotice("[source.p_They()] [source.p_are()] the reigning Martial Champion!")
+	if(jianghu_first_under_heaven() == mind)
+		examine_list += span_boldnotice("[source.p_They()] [source.p_are()] First Under Heaven, the strongest in the jianghu!")
+	else if(jianghu_rank_of(mind))
+		examine_list += span_notice("[source.p_They()] [source.p_are()] ranked #[jianghu_rank_of(mind)] in the Martial World Ranking.")
 	if(jianghu_is_dishonored(source))
 		examine_list += span_warning("[source.p_They()] recently interfered in an honor duel. Shameful.")
 
@@ -80,7 +84,8 @@ GLOBAL_LIST_EMPTY(jianghu_dishonor)
 /datum/action/cooldown/jianghu_duel
 	name = "Challenge to Duel"
 	desc = "Formally challenge someone nearby to an honor duel. The winner gains face, the loser loses it, \
-		anyone watching learns from it, and anyone who interferes is disgraced. Lasts until someone is beaten, yields, flees, or 3 minutes pass."
+		anyone watching learns from it, and anyone who interferes is disgraced. Lasts until someone is beaten, yields, flees, or 3 minutes pass. \
+		Hold something in your hand to offer it as a wager: both stakes are held until the duel ends, and the winner takes them all."
 	button_icon = 'surfshack13/icons/cultivation/cultivation_actions.dmi'
 	button_icon_state = "duel"
 	background_icon_state = "bg_heretic"
@@ -102,22 +107,49 @@ GLOBAL_LIST_EMPTY(jianghu_dishonor)
 	if(GLOB.jianghu_duels[challenger] || GLOB.jianghu_duels[opponent])
 		challenger.balloon_alert(challenger, "already in a duel!")
 		return FALSE
+	if(jianghu_refuses_challenge(challenger, opponent))
+		challenger.balloon_alert(challenger, "beneath their notice!")
+		to_chat(challenger, span_warning("[opponent] is First Under Heaven and won't accept challenges from anyone outside the top five of the Martial World Ranking."))
+		return FALSE
 	StartCooldown()
 	INVOKE_ASYNC(src, PROC_REF(ask), challenger, opponent)
 	return TRUE
 
 /datum/action/cooldown/jianghu_duel/proc/ask(mob/living/challenger, mob/living/carbon/human/opponent)
-	challenger.visible_message(span_boldnotice("[challenger] bows to [opponent] and challenges [opponent.p_them()] to an honor duel!"))
-	challenger.say("I challenge you to an honor duel!", forced = "honor duel")
-	var/answer = tgui_alert(opponent, "[challenger] challenges you to an honor duel! Winner gains face, loser loses it. Accept?", "Honor Duel", list("Accept", "Refuse"), 20 SECONDS)
+	var/obj/item/challenger_stake = jianghu_wager_candidate(challenger)
+	if(challenger_stake && tgui_alert(challenger, "Wager the [challenger_stake.name] in your hand? The winner of the duel takes every stake.", "Honor Duel", list("Wager it", "No wager"), 15 SECONDS) != "Wager it")
+		challenger_stake = null
 	if(QDELETED(challenger) || QDELETED(opponent))
 		return
-	if(answer != "Accept")
+	challenger.visible_message(span_boldnotice("[challenger] bows to [opponent] and challenges [opponent.p_them()] to an honor duel[challenger_stake ? ", wagering [challenger_stake]" : ""]!"))
+	challenger.say("I challenge you to an honor duel!", forced = "honor duel")
+	var/obj/item/opponent_stake = jianghu_wager_candidate(opponent)
+	var/list/choices = list("Accept", "Refuse")
+	if(opponent_stake)
+		choices.Insert(2, "Accept, wagering the [opponent_stake.name]")
+	var/answer = tgui_alert(opponent, "[challenger] challenges you to an honor duel[challenger_stake ? " and wagers [challenger_stake]" : ""]! Winner gains face, loser loses it[challenger_stake || opponent_stake ? ", and the winner takes every stake" : ""]. Accept?", "Honor Duel", choices, 20 SECONDS)
+	if(QDELETED(challenger) || QDELETED(opponent))
+		return
+	if(!answer || answer == "Refuse")
 		opponent.visible_message(span_notice("[opponent] refuses [challenger]'s challenge."))
 		return
+	if(answer == "Accept")
+		opponent_stake = null
 	if(GLOB.jianghu_duels[challenger] || GLOB.jianghu_duels[opponent] || get_dist(challenger, opponent) > 6)
 		return
-	new /datum/jianghu_duel(challenger, opponent)
+	var/datum/jianghu_duel/duel = new(challenger, opponent)
+	// Stakes have to still be in hand when the duel starts
+	if(challenger_stake && jianghu_wager_candidate(challenger) == challenger_stake)
+		duel.hold_stake(challenger, challenger_stake)
+	if(opponent_stake && jianghu_wager_candidate(opponent) == opponent_stake)
+		duel.hold_stake(opponent, opponent_stake)
+
+/// What someone could wager: whatever is in their active hand, if it can be let go of
+/proc/jianghu_wager_candidate(mob/living/fighter)
+	var/obj/item/held = fighter.get_active_held_item()
+	if(!held || (held.item_flags & (ABSTRACT|DROPDEL)) || HAS_TRAIT(held, TRAIT_NODROP))
+		return null
+	return held
 
 /// mob -> duel
 GLOBAL_LIST_EMPTY(jianghu_duels)
@@ -129,6 +161,8 @@ GLOBAL_LIST_EMPTY(jianghu_duels)
 	var/max_duration = 3 MINUTES
 	var/list/datum/action/cooldown/jianghu_yield/yield_actions = list()
 	var/ended = FALSE
+	/// Wagered items, held out of reach until the duel ends: item -> the mob who staked it
+	var/list/obj/item/stakes = list()
 
 /datum/jianghu_duel/New(mob/living/one, mob/living/two)
 	fighter_one = one
@@ -160,9 +194,52 @@ GLOBAL_LIST_EMPTY(jianghu_duels)
 		fighter.remove_filter("honor_duel")
 		UnregisterSignal(fighter, list(COMSIG_ATOM_WAS_ATTACKED, COMSIG_QDELETING))
 	QDEL_LIST(yield_actions)
+	// A duel that ends without a result hands every stake back
+	for(var/obj/item/stake as anything in stakes)
+		give_stake(stake, stakes[stake])
+	stakes.Cut()
 	fighter_one = null
 	fighter_two = null
 	return ..()
+
+/// Take a wager out of its owner's hands until the duel is decided
+/datum/jianghu_duel/proc/hold_stake(mob/living/fighter, obj/item/stake)
+	if(!fighter.temporarilyRemoveItemFromInventory(stake))
+		return
+	stake.moveToNullspace()
+	stakes[stake] = fighter
+	RegisterSignal(stake, COMSIG_QDELETING, PROC_REF(on_stake_deleted))
+	for(var/mob/viewer in viewers(7, fighter))
+		to_chat(viewer, span_notice("[fighter] lays down [stake] as a wager."))
+
+/datum/jianghu_duel/proc/on_stake_deleted(obj/item/source)
+	SIGNAL_HANDLER
+	stakes -= source
+
+/// Hand a stake to someone, or drop it at their feet (or wherever the duel was) if they can't take it
+/datum/jianghu_duel/proc/give_stake(obj/item/stake, mob/living/receiver)
+	if(QDELETED(stake))
+		return
+	UnregisterSignal(stake, COMSIG_QDELETING)
+	var/turf/landing = get_turf(receiver) || get_turf(fighter_one) || get_turf(fighter_two)
+	if(!landing)
+		return
+	stake.forceMove(landing)
+	// Putting things in hands can sleep (stack merging), and this runs from Destroy and signal handlers
+	if(!QDELETED(receiver) && receiver.stat == CONSCIOUS)
+		INVOKE_ASYNC(receiver, TYPE_PROC_REF(/mob, put_in_hands), stake)
+
+/// The winner takes every stake
+/datum/jianghu_duel/proc/pay_out(mob/living/winner)
+	if(!length(stakes))
+		return
+	var/list/won = list()
+	for(var/obj/item/stake as anything in stakes)
+		won += stake.name
+		give_stake(stake, winner)
+	stakes.Cut()
+	for(var/mob/viewer in viewers(7, winner))
+		to_chat(viewer, span_boldnotice("[winner] collects the wagers: [english_list(won)]."))
 
 /datum/jianghu_duel/proc/is_beaten(mob/living/fighter)
 	return QDELETED(fighter) || fighter.stat != CONSCIOUS || fighter.getStaminaLoss() >= 100 || fighter.health <= fighter.maxHealth * 0.25
@@ -223,6 +300,9 @@ GLOBAL_LIST_EMPTY(jianghu_duels)
 		loser_cultivator?.notify_laws(INSIGHT_SOURCE_DUEL, winner)
 		jianghu_mission_progress(winner?.mind, SECT_MISSION_DUEL, 1)
 		jianghu_tournament_record(winner, loser)
+		jianghu_ranking_record(winner, loser)
+		if(!QDELETED(winner))
+			pay_out(winner)
 	// Watching masters fight is educational
 	for(var/mob/living/spectator in viewers(7, center))
 		if(spectator == fighter_one || spectator == fighter_two || spectator.stat != CONSCIOUS)
@@ -421,6 +501,9 @@ GLOBAL_LIST_EMPTY(jianghu_sects)
 		. += span_warning("Sworn rivals: [english_list(rival_names)].")
 	. += span_notice("Sect mission: [sect.mission_text()][sect.mission_type ? " ([sect.mission_progress]/[sect.mission_goal])" : ""]. Missions completed: [sect.missions_completed].")
 	. += span_notice("Members meditating near the plaque cultivate faster. Others can click it to ask to join. The Sect Master can proclaim a Martial Tournament here.")
+	. += span_boldnotice("Martial World Ranking:")
+	for(var/line in jianghu_ranking_lines())
+		. += span_notice(line)
 
 /obj/structure/sect_plaque/attack_hand(mob/living/user, list/modifiers)
 	. = ..()

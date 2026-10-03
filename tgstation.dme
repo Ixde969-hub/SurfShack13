@@ -6617,6 +6617,7 @@
 #include "surfshack13\code\modules\cultivation\techniques\metal.dm"
 #include "surfshack13\code\modules\cultivation\techniques\universal.dm"
 #include "surfshack13\code\modules\cultivation\wuxia\jianghu.dm"
+#include "surfshack13\code\modules\cultivation\wuxia\martial_ranking.dm"
 #include "surfshack13\code\modules\cultivation\wuxia\martial_styles.dm"
 #include "surfshack13\code\modules\cultivation\wuxia\sect_missions.dm"
 #include "surfshack13\code\modules\datums\components\crafting\misc.dm"
