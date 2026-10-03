@@ -114,6 +114,9 @@
 	if(heaven_favour)
 		readiness += heaven_favour
 		reasons += span_nicegreen("+[heaven_favour]: heaven favours the one who bears its Mandate.")
+	if(body.has_status_effect(/datum/status_effect/inheritance_blessing) && !ascension)
+		readiness += 100
+		reasons += span_nicegreen("+100: your master's inheritance carries you.")
 	if(locate(/obj/machinery/power/energy_accumulator/grounding_rod) in range(4, body))
 		reasons += span_nicegreen("A grounding rod nearby will draw some of heaven's lightning.")
 	reasons += span_boldnotice("Total: [readiness] ([readiness_word()]). Stable breakthroughs always succeed if you endure them.")
@@ -200,6 +203,7 @@
 		cultivation_ascend(user, winner)
 		return
 	qdel(src)
+	user.remove_status_effect(/datum/status_effect/inheritance_blessing)
 	winner.advance_realm()
 	user.visible_message(
 		span_boldnotice("A pillar of golden light erupts from [user]! [user.p_They()] [user.p_have()] broken through to [winner.realm_name(winner.effective_realm())]!"),

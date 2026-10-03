@@ -320,6 +320,9 @@
 	if(heaven_favour)
 		readiness += heaven_favour
 		reasons += span_nicegreen("+[heaven_favour]: heaven favours the one who bears its Mandate.")
+	if(body.has_status_effect(/datum/status_effect/inheritance_blessing))
+		readiness += 100
+		reasons += span_nicegreen("+100: your master's inheritance carries you.")
 	if(body.nutrition >= NUTRITION_LEVEL_WELL_FED)
 		readiness += 10
 		reasons += span_nicegreen("+10: a full stomach.")
@@ -371,6 +374,7 @@
 	var/mob/living/carbon/user = body
 	var/datum/antagonist/body_cultivator/winner = body_datum
 	qdel(src)
+	user.remove_status_effect(/datum/status_effect/inheritance_blessing)
 	winner.advance_stage()
 	cultivation_breakthrough_sequence(user, winner.stage_name())
 	new /obj/effect/temp_visual/circle_wave/cultivation/earth(get_turf(user))
@@ -851,6 +855,8 @@
 		return
 	var/datum/antagonist/body_cultivator/body_datum = IS_BODY_CULTIVATOR(disciple) || disciple.mind.add_antag_datum(/datum/antagonist/body_cultivator)
 	body_datum.commit()
+	var/datum/antagonist/body_cultivator/master_datum = IS_BODY_CULTIVATOR(master)
+	master_datum?.disciples |= disciple.mind
 	var/datum/jianghu_sect/sect = jianghu_sect_of(master.mind)
 	if(sect && jianghu_sect_of(disciple.mind) != sect)
 		sect.add_member(disciple.mind)

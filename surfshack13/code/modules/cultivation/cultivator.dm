@@ -82,6 +82,7 @@
 		/datum/action/cooldown/spell/pointed/cultivation/qinggong = REALM_QI_CONDENSATION,
 		/datum/action/cooldown/spell/cultivation/write_talisman = REALM_QI_CONDENSATION,
 		/datum/action/cooldown/jianghu_duel = REALM_QI_CONDENSATION,
+		/datum/action/cooldown/name_heir = REALM_QI_CONDENSATION,
 		/datum/action/cooldown/spell/cultivation/found_sect = REALM_FOUNDATION,
 		/datum/action/cooldown/spell/cultivation/inscribe_formation = REALM_FOUNDATION,
 		/datum/action/cooldown/spell/pointed/cultivation/void_step = REALM_GOLDEN_CORE,
@@ -636,6 +637,8 @@
 	SIGNAL_HANDLER
 	if(breakthrough)
 		breakthrough.cancel()
+	// Runs before the Nascent Soul claims its revival, so it can tell whether one is coming
+	INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(cultivation_pass_on), source, gibbed)
 	if(gibbed || effective_realm() < REALM_NASCENT_SOUL)
 		return
 	if(!COOLDOWN_FINISHED(src, nascent_revival_cooldown))

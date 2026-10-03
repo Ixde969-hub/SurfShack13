@@ -201,6 +201,19 @@
 	GLOB.sworn_oathbreakers -= fighter_a.mind
 	GLOB.sworn_oath_takers -= list(fighter_a.mind, fighter_b.mind)
 
+	// Inheritance: a master's death fills the heir's foundation, guarantees their breakthrough, and empties the master
+	var/datum/antagonist/cultivator/master_datum = IS_CULTIVATOR(new_body)
+	master_datum.disciples |= fighter_c.mind
+	TEST_ASSERT(fighter_c.mind in cultivation_heir_candidates(new_body.mind), "A disciple couldn't be named heir.")
+	GLOB.cultivation_heirs[new_body.mind] = fighter_c.mind
+	TEST_ASSERT(cultivation_pass_on(new_body, FALSE), "The cultivation didn't pass on.")
+	var/datum/antagonist/cultivator/heir_datum = IS_CULTIVATOR(fighter_c)
+	TEST_ASSERT_NOTNULL(heir_datum, "Inheriting didn't awaken a mortal heir.")
+	TEST_ASSERT(heir_datum.progress > 0, "The heir's foundation didn't fill.")
+	TEST_ASSERT_NOTNULL(fighter_c.has_status_effect(/datum/status_effect/inheritance_blessing), "The heir's next breakthrough isn't guaranteed.")
+	TEST_ASSERT_EQUAL(master_datum.realm, REALM_QI_CONDENSATION, "The master kept their realm after passing it on.")
+	TEST_ASSERT_NULL(GLOB.cultivation_heirs[new_body.mind], "The heir stayed named after inheriting.")
+
 	GLOB.jianghu_ranking = old_ranking
 	GLOB.jianghu_ranking_pair_cooldowns = old_cooldowns
 

@@ -118,6 +118,8 @@ GLOBAL_LIST_INIT(cultivation_overcomes, list(
 #define BODY_STAGE_MORTAL_CAP 1
 /// Pending tempering caps here until you Forge the Body
 #define BODY_TEMPERING_CAP 120
+/// Tempering needed to raise a limb to a level
+#define BODY_PART_COST(level) (2 + (level))
 // Body training sources, each with its own cooldown
 #define BODY_TRAINING_GYM "gym"
 #define BODY_TRAINING_FIGHT "fight"
