@@ -335,7 +335,8 @@
 /datum/action/cooldown/spell/pointed/cultivation/flying_sword
 	name = "Flying Sword"
 	desc = "Send your bound artifact flying at a target. Blades bite deep and can sever limbs; blunt artifacts knock people down. \
-		It returns if nothing stops it. Works from your hand or from the floor nearby."
+		It returns if nothing stops it. Works from your hand or from the floor nearby. If Returning Iron is your Root Law, aim it at yourself to have it circle you: \
+		it catches the next melee blow and flies at the attacker."
 	button_icon = 'icons/mob/actions/actions_spells.dmi'
 	button_icon_state = "bolt_action"
 	cast_range = 7
@@ -363,6 +364,13 @@
 	. = ..()
 	var/obj/item/artifact = cultivation_get_artifact(owner)
 	var/datum/component/cultivation_artifact/bond = artifact.GetComponent(/datum/component/cultivation_artifact)
+	// Returning Iron root: aimed at yourself, the artifact circles you and guards you instead
+	if((cast_on == owner || get_turf(cast_on) == get_turf(owner)) && cultivation_has_root(owner, ELEMENT_METAL))
+		var/mob/living/user = owner
+		if(artifact.loc != user)
+			bond.recall(user)
+		user.apply_status_effect(/datum/status_effect/iron_guard, artifact)
+		return
 	owner.visible_message(span_danger("[owner] points, and [artifact] shoots through the air!"))
 	bond.launch(cast_on, owner)
 

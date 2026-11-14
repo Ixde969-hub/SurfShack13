@@ -72,13 +72,19 @@
 /// Body arts recover faster the higher your stage: 5% per stage, 55% at the Primordial Chaos Body
 /datum/action/cooldown/spell/body_art/StartCooldownSelf(override_cooldown_time)
 	if(!isnum(override_cooldown_time))
-		override_cooldown_time = cooldown_time * (1 - 0.05 * body_art_stage(owner))
+		override_cooldown_time = cooldown_time * body_art_cooldown_multiplier(src)
 	return ..(override_cooldown_time)
 
 /datum/action/cooldown/spell/pointed/body_art/StartCooldownSelf(override_cooldown_time)
 	if(!isnum(override_cooldown_time))
-		override_cooldown_time = cooldown_time * (1 - 0.05 * body_art_stage(owner))
+		override_cooldown_time = cooldown_time * body_art_cooldown_multiplier(src)
 	return ..(override_cooldown_time)
+
+/// 5% shorter per stage, and a quarter shorter again for the Thunderclap stance's favourite arts
+/proc/body_art_cooldown_multiplier(datum/action/technique)
+	. = 1 - 0.05 * body_art_stage(technique.owner)
+	if(is_type_in_typecache(technique, GLOB.thunderclap_arts) && istype(body_stance_of(technique.owner), /datum/status_effect/body_stance/thunderclap))
+		. *= 0.75
 
 /proc/body_can_cast(datum/action/technique, exhaustion_cost, feedback)
 	var/mob/living/caster = technique.owner
@@ -463,7 +469,10 @@
 /datum/action/cooldown/spell/body_art/iron_shirt/cast(mob/living/cast_on)
 	. = ..()
 	var/datum/antagonist/body_cultivator/body_datum = IS_BODY_CULTIVATOR(cast_on)
-	cast_on.apply_status_effect(/datum/status_effect/body_iron_shirt, 10 SECONDS + body_datum.stage * 1 SECONDS)
+	var/duration = 10 SECONDS + body_datum.stage * 1 SECONDS
+	if(istype(body_stance_of(cast_on), /datum/status_effect/body_stance/mountain))
+		duration *= 1.5
+	cast_on.apply_status_effect(/datum/status_effect/body_iron_shirt, duration)
 	cast_on.visible_message(span_warning("[cast_on]'s muscles lock with a sound like a bell!"), span_notice("Your body becomes an iron shirt."))
 	playsound(cast_on, 'sound/effects/gong.ogg', 40, TRUE, frequency = 1.6)
 	new /obj/effect/temp_visual/circle_wave/cultivation/earth(get_turf(cast_on))
@@ -760,13 +769,17 @@
 
 /datum/action/cooldown/spell/body_art/vajra_body/cast(mob/living/cast_on)
 	. = ..()
-	cast_on.apply_status_effect(/datum/status_effect/body_vajra)
+	cast_on.apply_status_effect(/datum/status_effect/body_vajra, istype(body_stance_of(cast_on), /datum/status_effect/body_stance/mountain) ? 12 SECONDS : 8 SECONDS)
 
 /datum/status_effect/body_vajra
 	id = "body_vajra"
 	alert_type = null
 	duration = 8 SECONDS
 	status_type = STATUS_EFFECT_REFRESH
+
+/datum/status_effect/body_vajra/on_creation(mob/living/new_owner, duration = 8 SECONDS)
+	src.duration = duration
+	return ..()
 
 /datum/status_effect/body_vajra/on_apply()
 	RegisterSignal(owner, COMSIG_MOB_APPLY_DAMAGE_MODIFIERS, PROC_REF(golden))

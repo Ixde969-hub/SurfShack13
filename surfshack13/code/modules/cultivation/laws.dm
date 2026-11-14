@@ -18,6 +18,8 @@
 	var/passive_applied = FALSE
 	/// The body our passive is applied to
 	var/datum/weakref/passive_body_ref
+	/// What this law does differently when it's your Root Law (your first)
+	var/root_text = "nothing special."
 
 /datum/cultivation_law/Destroy()
 	var/mob/living/body = passive_body_ref?.resolve()
@@ -58,6 +60,7 @@
 	name = "Returning Iron Sutra"
 	desc = "Metal. Bind a tool or weapon to your soul and send it flying. Insight from crafting, building and welding."
 	element = ELEMENT_METAL
+	root_text = "Flying Sword aimed at yourself sets your artifact circling you; it intercepts the next melee blow and launches itself at the attacker."
 	techniques = list(
 		/datum/action/cooldown/spell/cultivation/bind_artifact = REALM_QI_CONDENSATION,
 		/datum/action/cooldown/spell/pointed/cultivation/flying_sword = REALM_QI_CONDENSATION,
@@ -79,6 +82,7 @@
 	name = "Still Water Scripture"
 	desc = "Water. Ward allies and calm troubled minds. Foundation passive: you never slip on wet floors. Insight from cleaning, fishing and tending plants."
 	element = ELEMENT_WATER
+	root_text = "Still Water Ward stores half of what it absorbs and, when it ends, crashes it out as a wave that hits and shoves everyone around the warded person."
 	techniques = list(
 		/datum/action/cooldown/spell/pointed/cultivation/still_water_ward = REALM_QI_CONDENSATION,
 		/datum/action/cooldown/spell/pointed/cultivation/calm_heart = REALM_QI_CONDENSATION,
@@ -105,6 +109,7 @@
 	name = "Furnace Heart Canon"
 	desc = "Fire. Kindle flames with a touch and store heat for a devastating burst. Foundation passive: your inner fire keeps the cold away. Insight from cooking and welding."
 	element = ELEMENT_FIRE
+	root_text = "Furnace Burst also flings you backwards out of the flames, away from where you're facing."
 	techniques = list(
 		/datum/action/cooldown/spell/pointed/cultivation/kindle = REALM_QI_CONDENSATION,
 		/datum/action/cooldown/spell/cultivation/furnace_burst = REALM_QI_CONDENSATION,
@@ -129,6 +134,7 @@
 	name = "Rooted Mountain Manual"
 	desc = "Earth. Become immovable and wrap yourself in a golden bell. Foundation passive: stone skin reduces brute damage. Insight from mining, building and training your body."
 	element = ELEMENT_EARTH
+	root_text = "Rooted Stance shields an ally standing next to you: they take half damage and you take the rest."
 	techniques = list(
 		/datum/action/cooldown/spell/cultivation/rooted_stance = REALM_QI_CONDENSATION,
 		/datum/action/cooldown/spell/cultivation/golden_bell = REALM_QI_CONDENSATION,
@@ -159,6 +165,7 @@
 	name = "Evergreen Spring Classic"
 	desc = "Wood. Mend wounds and make life flourish. Foundation passive: your body shrugs off some toxins. Insight from botany and from healing others."
 	element = ELEMENT_WOOD
+	root_text = "Binding Vines cast outside combat mode pull an ally to your side instead of holding them."
 	techniques = list(
 		/datum/action/cooldown/spell/pointed/cultivation/spring_mending = REALM_QI_CONDENSATION,
 		/datum/action/cooldown/spell/cultivation/verdant_growth = REALM_QI_CONDENSATION,

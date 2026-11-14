@@ -1,6 +1,6 @@
 // Cultivation (xianxia) defines. See surfshack13/code/modules/cultivation
 
-// Realms. Each realm unlocks the next tier of every law you hold and one more law slot.
+// Realms. Each realm unlocks the next tier of every law you hold. Your first law is your Root Law; a second, Complementary Law fits from Foundation.
 #define REALM_MORTAL 0
 #define REALM_QI_CONDENSATION 1
 #define REALM_FOUNDATION 2

@@ -83,7 +83,7 @@ GLOBAL_LIST_INIT(cultivation_element_colors, list(
 	</style>"}
 	html += "<div style='float:right'><a class='btn' href='byond://?src=[REF(src)];cultivation_refresh=1'>Refresh</a></div>"
 	html += "<h1>[realm_name()]</h1>"
-	html += "<div class='dim'>[body?.real_name || owner.name], cultivating [length(laws)] of [law_slots()] possible laws</div>"
+	html += "<div class='dim'>[body?.real_name || owner.name], cultivating [length(laws)] of [law_slots()] possible laws (a Root Law, and from Foundation a Complementary Law)</div>"
 
 	// Bars
 	html += panel_bar("Qi", qi, max_qi(), "linear-gradient(90deg,#2b6fd6,#7fd7ff)")
@@ -127,9 +127,10 @@ GLOBAL_LIST_INIT(cultivation_element_colors, list(
 		var/list/sources = list()
 		for(var/activity in law.insight_activities)
 			sources += GLOB.cultivation_activity_names[activity] || activity
+		var/is_root = law == root_law()
 		html += "<div class='card'><span class='chip' style='background:[GLOB.cultivation_element_colors[law.element]]'>[law.element]</span> \
-			<b>[law.name]</b>[law.counterfeit ? " <span class='warn'>(counterfeit: +50% qi costs, you shout move names)</span>" : ""]<br>\
-			<span class='dim'>[law.desc]</span><br>Insight from: [english_list(sources)]</div>"
+			<b>[law.name]</b> <span class='dim'>([is_root ? "Root Law" : "Complementary Law"])</span>[law.counterfeit ? " <span class='warn'>(counterfeit: +50% qi costs, you shout move names)</span>" : ""]<br>\
+			<span class='dim'>[law.desc]</span><br>[is_root ? "<span style='color:#ffe9a0'>Root twist: [law.root_text]</span><br>" : ""]Insight from: [english_list(sources)]</div>"
 
 	// Techniques
 	html += "<h2>Techniques</h2>"

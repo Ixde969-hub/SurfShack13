@@ -4,7 +4,8 @@
 
 /datum/action/cooldown/spell/pointed/cultivation/still_water_ward
 	name = "Still Water Ward"
-	desc = "Wrap yourself or an ally in a skin of perfectly still water that absorbs the next 30 damage (more at higher realms)."
+	desc = "Wrap yourself or an ally in a skin of perfectly still water that absorbs the next 30 damage (more at higher realms). If Still Water is your Root Law, \
+		half of what it absorbs crashes back out as a wave when it ends."
 	button_icon = 'icons/mob/actions/actions_spells.dmi'
 	button_icon_state = "shield"
 	cast_range = 3
@@ -19,7 +20,7 @@
 	cast_on.visible_message(span_notice("A shimmering skin of water settles over [cast_on]."))
 	playsound(cast_on, 'sound/effects/splash.ogg', 40, TRUE)
 	new /obj/effect/temp_visual/circle_wave/cultivation/water(get_turf(cast_on))
-	cast_on.apply_status_effect(/datum/status_effect/still_water_ward, 20 + 10 * cultivation_realm_of(owner))
+	cast_on.apply_status_effect(/datum/status_effect/still_water_ward, 20 + 10 * cultivation_realm_of(owner), cultivation_has_root(owner, ELEMENT_WATER))
 
 /datum/action/cooldown/spell/pointed/cultivation/calm_heart
 	name = "Calm Heart"
@@ -110,7 +111,8 @@
 
 /datum/action/cooldown/spell/cultivation/furnace_burst
 	name = "Furnace Burst"
-	desc = "Stoke your inner furnace for a moment, then release a ring of fire around you. It's hot for you too."
+	desc = "Stoke your inner furnace for a moment, then release a ring of fire around you. It's hot for you too. If Furnace Heart is your Root Law, \
+		the blast flings you backwards, away from where you're facing."
 	button_icon = 'icons/mob/actions/actions_spells.dmi'
 	button_icon_state = "fireball"
 	cooldown_time = 20 SECONDS
@@ -147,6 +149,10 @@
 			victim.ignite_mob()
 	user.apply_damage(5, BURN)
 	to_chat(user, span_warning("The heat sears your own meridians."))
+	// Furnace Heart root: the blast carries you out of it
+	if(cultivation_has_root(user, ELEMENT_FIRE) && !user.buckled && !HAS_TRAIT(user, TRAIT_RESTRAINED))
+		user.visible_message(span_warning("The blast hurls [user] backwards out of the flames!"))
+		user.throw_at(get_edge_target_turf(user, REVERSE_DIR(user.dir)), 4, 2, user, spin = FALSE, gentle = TRUE)
 
 /datum/action/cooldown/spell/cultivation/burning_blood
 	name = "Burning Blood Essence"
@@ -171,7 +177,7 @@
 /datum/action/cooldown/spell/cultivation/rooted_stance
 	name = "Rooted Stance"
 	desc = "Sink into the stance of a mountain for 10 seconds. You walk slowly, but can't be shoved, slipped or stunned, take 40% less damage \
-		and slowly mend. Use again to end it early."
+		and slowly mend. Use again to end it early. If Rooted Mountain is your Root Law, an ally beside you takes half damage while you take the rest."
 	button_icon = 'icons/mob/actions/actions_spells.dmi'
 	button_icon_state = "statue"
 	cooldown_time = 20 SECONDS
@@ -192,6 +198,14 @@
 	new /obj/effect/temp_visual/circle_wave/cultivation/earth(get_turf(cast_on))
 	new /obj/effect/temp_visual/mook_dust(get_turf(cast_on))
 	cast_on.apply_status_effect(/datum/status_effect/rooted_stance)
+	// Rooted Mountain root: the mountain shelters whoever stands beside it
+	if(cultivation_has_root(cast_on, ELEMENT_EARTH))
+		for(var/mob/living/carbon/human/ally in orange(1, cast_on))
+			if(ally.stat == DEAD || (ally.combat_mode && !cultivation_is_ally(cast_on, ally)))
+				continue
+			ally.apply_status_effect(/datum/status_effect/rooted_guarded, cast_on)
+			to_chat(ally, span_notice("[cast_on] plants [cast_on.p_them()]self beside you. Blows meant for you will strike the mountain."))
+			break
 
 /datum/action/cooldown/spell/cultivation/golden_bell
 	name = "Golden Bell Shield"
@@ -296,7 +310,8 @@
 
 /datum/action/cooldown/spell/pointed/cultivation/binding_vines
 	name = "Binding Vines"
-	desc = "Command vines to burst from the floor and hold someone in place for a few seconds."
+	desc = "Command vines to burst from the floor and hold someone in place for a few seconds. If Evergreen Spring is your Root Law, \
+		casting it outside combat mode pulls the person to your side instead."
 	button_icon = 'icons/mob/actions/actions_spells.dmi'
 	button_icon_state = "the_traps"
 	cast_range = 6
@@ -308,6 +323,14 @@
 
 /datum/action/cooldown/spell/pointed/cultivation/binding_vines/cast(mob/living/cast_on)
 	. = ..()
+	// Evergreen Spring root: out of combat, the vines carry a friend to you instead
+	var/mob/living/user = owner
+	if(!user.combat_mode && cultivation_has_root(user, ELEMENT_WOOD))
+		cast_on.visible_message(span_notice("Vines lift [cast_on] gently off the floor and carry [cast_on.p_them()] to [user]'s side."))
+		new /obj/effect/temp_visual/circle_wave/cultivation/wood(get_turf(cast_on))
+		playsound(cast_on, 'sound/effects/bush/crunchybushwhack2.ogg', 40, TRUE)
+		cast_on.throw_at(get_turf(user), get_dist(user, cast_on), 2, user, spin = FALSE, gentle = TRUE)
+		return
 	cast_on.visible_message(span_danger("Vines erupt from the floor and wrap around [cast_on]!"), span_userdanger("Vines seize your legs!"))
 	new /obj/effect/temp_visual/circle_wave/cultivation/wood(get_turf(cast_on))
 	playsound(cast_on, 'sound/effects/bush/crunchybushwhack2.ogg', 60, TRUE)

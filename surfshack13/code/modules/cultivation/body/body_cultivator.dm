@@ -359,7 +359,7 @@ GLOBAL_LIST_INIT(body_part_powers, list(
 	var/static/list/stage_benefits = list(
 		"+10 max health. Breath of Renewal: channel your breath to heal.",
 		"+10 max health. Bones that barely break (fewer wounds). Iron Shirt, Mountain Leap, Earth-Shattering Stomp.",
-		"+10 max health. Shattering Fist, Hundred Fist Barrage, Bone Setting, Accept Body Disciple.",
+		"+10 max health. Shattering Fist, Hundred Fist Barrage, Bone Setting, Accept Body Disciple, and the Thunderclap and Immovable Mountain stances.",
 		"+10 max health. Remold Limb (regrow a lost limb), Raging Bull Charge.",
 		"+15 max health. Blood Boil, Falling Mountain Descent, Mountain-Toppling Throw.",
 		"+15 max health. Sky-Splitting Palm; Raging Bull Charge breaks walls.",
@@ -377,6 +377,8 @@ GLOBAL_LIST_INIT(body_part_powers, list(
 		/datum/action/cooldown/spell/body_art/iron_shirt = 2,
 		/datum/action/cooldown/spell/pointed/body_art/mountain_leap = 2,
 		/datum/action/cooldown/spell/pointed/body_art/shattering_fist = 3,
+		/datum/action/cooldown/spell/body_art/stance/thunderclap = 3,
+		/datum/action/cooldown/spell/body_art/stance/mountain = 3,
 		/datum/action/cooldown/spell/body_art/bone_setting = 3,
 		/datum/action/cooldown/spell/pointed/body_art/body_disciple = 3,
 		/datum/action/cooldown/spell/body_art/remold_limb = 4,

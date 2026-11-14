@@ -92,6 +92,7 @@
 		/datum/action/cooldown/spell/pointed/cultivation/acupoint = REALM_FOUNDATION,
 		/datum/action/cooldown/spell/cultivation/concealment = REALM_FOUNDATION,
 		/datum/action/cooldown/spell/cultivation/forced_circulation = REALM_FOUNDATION,
+		/datum/action/cooldown/spell/cultivation/forget_law = REALM_FOUNDATION,
 		/datum/action/cooldown/spell/cultivation/body_outside_body = REALM_NASCENT_SOUL,
 		/datum/action/cooldown/spell/cultivation/realm_pressure = REALM_FOUNDATION,
 		/datum/action/cooldown/spell/cultivation/ascension = REALM_NASCENT_SOUL,
@@ -235,10 +236,23 @@
 		return REALM_MORTAL
 	return min(realm, dantian.grade)
 
+/// One law, the Root Law, until Foundation Establishment makes room for a second, Complementary Law. Never more than two.
 /datum/antagonist/cultivator/proc/law_slots()
-	if(realm >= REALM_NASCENT_SOUL)
-		return 5
-	return max(realm, 1)
+	return realm >= REALM_FOUNDATION ? 2 : 1
+
+/// The first law you ever learned: it gives your cultivation its signature twist
+/datum/antagonist/cultivator/proc/root_law()
+	return length(laws) ? laws[1] : null
+
+/// Is this element your Root Law's?
+/datum/antagonist/cultivator/proc/has_root(element)
+	var/datum/cultivation_law/root = root_law()
+	return root?.element == element
+
+/// Does this mob cultivate this element as their Root Law?
+/proc/cultivation_has_root(mob/living/user, element)
+	var/datum/antagonist/cultivator/cultivator = IS_CULTIVATOR(user)
+	return cultivator?.has_root(element)
 
 /datum/antagonist/cultivator/proc/has_law(law_type)
 	for(var/datum/cultivation_law/law as anything in laws)
@@ -410,7 +424,10 @@
 		return FALSE
 	if(length(laws) >= law_slots())
 		if(feedback)
-			to_chat(user, span_warning("Your meridians cannot hold another law yet! Break through to a higher realm first."))
+			if(realm >= REALM_FOUNDATION)
+				to_chat(user, span_warning("Your meridians hold a Root Law and a Complementary Law, and that is all they ever will. Let go of your Complementary Law first."))
+			else
+				to_chat(user, span_warning("Your meridians cannot hold another law yet! Reach Foundation Establishment to make room for a Complementary Law."))
 		return FALSE
 	var/datum/cultivation_law/new_law = new law_type()
 	new_law.counterfeit = counterfeit
@@ -428,7 +445,7 @@
 		adjust_instability(10)
 	new_law.on_body_gained(user, src)
 	if(feedback)
-		to_chat(user, span_boldnotice("You have learned [new_law.name]!"))
+		to_chat(user, span_boldnotice("You have learned [new_law.name]![length(laws) == 1 ? " It is your Root Law: [new_law.root_text]" : " It is your Complementary Law."]"))
 		to_chat(user, span_notice(new_law.desc))
 	refresh_techniques()
 	return TRUE
@@ -779,6 +796,6 @@
 	text += "Instability: [round(instability)][instability >= 50 ? span_warning(" (dangerous)") : ""]"
 	var/list/law_names = list()
 	for(var/datum/cultivation_law/law as anything in laws)
-		law_names += "[law.name] ([law.element])[law.counterfeit ? " <i>(counterfeit?)</i>" : ""]"
+		law_names += "[law.name] ([law.element], [law == root_law() ? "root" : "complementary"])[law.counterfeit ? " <i>(counterfeit?)</i>" : ""]"
 	text += "Laws ([length(laws)]/[law_slots()]): [length(law_names) ? english_list(law_names) : "none"]"
 	return text.Join("<br>")

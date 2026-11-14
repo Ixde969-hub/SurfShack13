@@ -214,7 +214,9 @@
 	for(var/mob/living/victim in range(radius + 2, center))
 		shake_camera(victim, 2 + round(stage / 3), 2)
 		if(victim != cast_on && get_dist(victim, center) <= radius)
-			body_art_hit(cast_on, victim, 4 + stage, 1 SECONDS + stage * 0.2 SECONDS, name)
+			if(body_art_hit(cast_on, victim, 4 + stage, 1 SECONDS + stage * 0.2 SECONDS, name) && istype(body_stance_of(cast_on), /datum/status_effect/body_stance/mountain) && !HAS_TRAIT(victim, TRAIT_PUSHIMMUNE))
+				// The mountain doesn't just shake them, it throws them clear
+				victim.throw_at(get_edge_target_turf(victim, get_dir(center, victim) || pick(GLOB.alldirs)), 2 + round(stage / 3), 2, cast_on)
 
 // ===================== Hundred Fist Barrage =====================
 

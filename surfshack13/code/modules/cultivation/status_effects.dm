@@ -28,9 +28,13 @@
 	status_type = STATUS_EFFECT_REFRESH
 	var/absorb_left = 30
 	var/obj/effect/abstract/cultivation_vis/bubble
+	/// Still Water root: keeps half of what it absorbs to crash back out at the end
+	var/stores_force = FALSE
+	var/stored = 0
 
-/datum/status_effect/still_water_ward/on_creation(mob/living/new_owner, absorb = 30)
+/datum/status_effect/still_water_ward/on_creation(mob/living/new_owner, absorb = 30, stores_force = FALSE)
 	absorb_left = absorb
+	src.stores_force = stores_force
 	return ..()
 
 /datum/status_effect/still_water_ward/on_apply()
@@ -39,8 +43,9 @@
 	bubble = cultivation_attach_vis(owner, 'surfshack13/icons/cultivation/cultivation_effects_64.dmi', "water_bubble", null, 64, 0, 150)
 	return TRUE
 
-/datum/status_effect/still_water_ward/refresh(effect, absorb = 30)
+/datum/status_effect/still_water_ward/refresh(effect, absorb = 30, stores_force = FALSE)
 	absorb_left = max(absorb_left, absorb)
+	src.stores_force ||= stores_force
 	return ..()
 
 /datum/status_effect/still_water_ward/on_remove()
@@ -49,6 +54,8 @@
 	cultivation_detach_vis(owner, bubble)
 	bubble = null
 	to_chat(owner, span_notice("The still water around you ripples away."))
+	if(stores_force && stored >= 5)
+		cultivation_ward_wave(owner, stored)
 
 /datum/status_effect/still_water_ward/proc/absorb(mob/living/source, list/damage_mods, damage, damagetype, ...)
 	SIGNAL_HANDLER
@@ -56,6 +63,8 @@
 		return
 	var/absorbed = min(absorb_left, damage)
 	absorb_left -= absorbed
+	if(stores_force)
+		stored += absorbed / 2
 	damage_mods += (damage - absorbed) / damage
 	if(absorb_left <= 0)
 		qdel(src)
