@@ -20,7 +20,8 @@ cd /d "%FOLDER%"
 echo Getting the latest wuxia changes...
 git fetch origin %BRANCH%
 git checkout %BRANCH%
-git pull --ff-only origin %BRANCH%
+REM The folder is a play copy: always match the newest version exactly, even after history was rewritten.
+git reset --hard origin/%BRANCH%
 
 REM Only the engine: the other KS14 submodules are private.
 git submodule update --init --recursive RobustToolbox || (echo Could not download the engine. & pause & exit /b 1)
